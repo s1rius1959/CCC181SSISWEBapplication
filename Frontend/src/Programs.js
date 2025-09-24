@@ -1,13 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
+import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
+
+// Generate programs
+const programs = Array.from({ length: 100 }, (_, i) => ({
+  code: `P${String(i + 1).padStart(3, "0")}`,
+  name: `Program ${i + 1}`,
+  college: `College ${((i % 10) + 1)}`,
+}));
 
 function Programs() {
-  const programs = []; // placeholder
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedPrograms = programs.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(programs.length / itemsPerPage);
 
   return (
     <div className="content">
       <div className="content-header">
         <h2>Programs</h2>
-        <button className="btn-primary">+ Add Program</button>
+        <div className="search-container">
+          <input type="text" className="search-bar" placeholder="Search" />
+          <SearchIcon className="search-icon"/>
+        </div>
       </div>
 
       <div className="table-container">
@@ -17,31 +33,28 @@ function Programs() {
               <th>Program Code</th>
               <th>Program Name</th>
               <th>College</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {programs.length > 0 ? (
-              programs.map((program, index) => (
-                <tr key={index}>
-                  <td>{program.code}</td>
-                  <td>{program.name}</td>
-                  <td>{program.college}</td>
-                  <td>
-                    <button className="btn-edit">Edit</button>
-                    <button className="btn-delete">Delete</button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>
-                  No program data available
-                </td>
+            {paginatedPrograms.map((program) => (
+              <tr key={program.code}>
+                <td>{program.code}</td>
+                <td>{program.name}</td>
+                <td>{program.college}</td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
+
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+            Prev
+          </button>
+          <span>Page {currentPage} of {totalPages}</span>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

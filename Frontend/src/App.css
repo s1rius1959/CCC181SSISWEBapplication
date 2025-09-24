@@ -61,15 +61,6 @@ body {
   flex-direction: column;
 }
 
-/* Header */
-.header {
-  background: #0096ff;
-  color: #fff;
-  padding: 15px;
-  text-align: center;
-  font-size: 20px;
-}
-
 /* Page Content */
 .content {
   padding: 30px 40px;
@@ -80,6 +71,28 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+.search-container {
+  position: relative;
+  display: inline-block;
+}
+
+.search-bar {
+  width: 350px;
+  height: 30px;
+  font-size: 16px;
+  padding: 8px 12px 8px 12px;
+  border: 1px solid #999;
+  border-radius: 8px;
+}
+.search-icon {
+  position: absolute;
+  top: 48%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
 }
 
 .btn-primary {
@@ -153,4 +166,34 @@ body {
 
 .btn-delete:hover {
   background: #d32f2f;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: flex-end; 
+  margin-top: 10px;        
+  gap: 8px;                 
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  align-self: center; 
 }

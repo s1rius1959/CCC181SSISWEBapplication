@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 function Sidebar() {
   return (
     <div className="sidebar">
-      <div className="sidebar-logo">Informations</div>
+      <div className="sidebar-logo">Class.io</div>
       <ul className="sidebar-menu">
         <li>
           <NavLink 
