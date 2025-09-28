@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
+import ActionButtons from "./ActionButtons";
 
 // Generate colleges
 const colleges = Array.from({ length: 50 }, (_, i) => ({
@@ -8,6 +9,12 @@ const colleges = Array.from({ length: 50 }, (_, i) => ({
 }));
 
 function Colleges() {
+  const handleEdit = (college) => {
+    console.log("Edit college:", college);
+  };
+  const handleDelete = (college) => {
+    console.log("Delete college:", college);
+  };
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -31,6 +38,7 @@ function Colleges() {
             <tr>
               <th>College Code</th>
               <th>College Name</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -38,6 +46,13 @@ function Colleges() {
               <tr key={college.code}>
                 <td>{college.code}</td>
                 <td>{college.name}</td>
+                <td>
+                  <ActionButtons
+                    item={college}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

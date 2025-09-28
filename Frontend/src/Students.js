@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
+import ActionButtons from "./ActionButtons";
 
 // Utility: generate ID
 function generateId(year, index) {
@@ -7,12 +8,12 @@ function generateId(year, index) {
 }
 
 // Sample courses
-const sampleCourses = ["BSCS", "BSIT", "BSECE", "BSME", "BSCE"];
+const programs = ["BSCS", "BSIT", "BSECE", "BSME", "BSCE"];
 
 // Generate student data
-const students = Array.from({ length: 200 }, (_, i) => {
+const initialstudents = Array.from({ length: 200 }, (_, i) => {
   const year = 2023 + (i % 3);
-  const course = sampleCourses[i % sampleCourses.length];
+  const course = programs[i % programs.length];
   const yearLevel = (i % 4) + 1;
 
   return {
@@ -25,6 +26,7 @@ const students = Array.from({ length: 200 }, (_, i) => {
 });
 
 function Students() {
+  const [students, setStudents] = useState(initialstudents);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -32,6 +34,19 @@ function Students() {
   const paginatedStudents = students.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(students.length / itemsPerPage);
 
+  // Edit Ps. Functional but not yet in Database
+  const handleEdit = (editedStudent) => {
+    setStudents(prev =>
+      prev.map(s => (s.id === editedStudent.id ? editedStudent : s))
+    )
+  }
+
+  // Delete Ps. Functional but not yet in Database
+  const handleDelete = (student) => {
+    setStudents(prev => prev.filter(s => s.id !== student.id))
+  }
+
+  // Main Content 
   return (
     <div className="content">
       <div className="content-header">
@@ -51,6 +66,7 @@ function Students() {
               <th>Last Name</th>
               <th>Course</th>
               <th>Year Level</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -61,6 +77,14 @@ function Students() {
                 <td>{student.lastName}</td>
                 <td>{student.course}</td>
                 <td>{student.yearLevel}</td>
+                <td>
+                  <ActionButtons
+                    item={student}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    programs={programs}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

@@ -1,14 +1,21 @@
 import React, { useState } from "react";
 import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
+import ActionButtons from "./ActionButtons";
 
 // Generate programs
 const programs = Array.from({ length: 100 }, (_, i) => ({
   code: `P${String(i + 1).padStart(3, "0")}`,
   name: `Program ${i + 1}`,
-  college: `College ${((i % 10) + 1)}`,
+  college: `College ${((i % 50) + 1)}`,
 }));
 
 function Programs() {
+  const handleEdit = (college) => {
+    console.log("Edit college:", college);
+  };
+  const handleDelete = (college) => {
+    console.log("Delete college:", college);
+  };
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -33,6 +40,7 @@ function Programs() {
               <th>Program Code</th>
               <th>Program Name</th>
               <th>College</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -41,6 +49,13 @@ function Programs() {
                 <td>{program.code}</td>
                 <td>{program.name}</td>
                 <td>{program.college}</td>
+                <td>
+                  <ActionButtons
+                    item={program}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
