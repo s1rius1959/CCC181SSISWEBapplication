@@ -372,3 +372,54 @@ body {
   vertical-align: middle; /* optional: makes it look cleaner vertically */
 }
 
+/* Add Student Button */
+.add-student-btn {
+  background-color: #007bff;
+  color: white;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.add-student-btn:hover {
+  background-color: #022142;
+}
+
+.add-student-btn:active {
+  background-color: #001f3f;
+}
+
+/* Add College and Program Button */
+.add-college-btn {
+  background-color: #007bff;
+  color: white;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.add-college-btn:hover {
+  background-color: #022142;
+}
+.add-college-btn:active {
+  background-color: #001f3f;
+}
+
+.add-program-btn {
+  background-color: #007bff;
+  color: white;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.add-program-btn:hover {
+  background-color: #022142;
+}
+.add-program-btn:active {
+  background-color: #001f3f;
+}

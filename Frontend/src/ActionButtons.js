@@ -84,6 +84,20 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                   </label>
 
                   <label>
+                    Gender:
+                    <select
+                      name="gender"
+                      value={editedItem.gender || ""}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                      <option value="Others">Others</option>
+                    </select>
+                  </label>
+
+                  <label>
                     Program:
                     <select
                       name="course"

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
 import ActionButtons from "./ActionButtons";
+import AddProgram from "./AddProgram";
 
 // Generate programs
 const programs = Array.from({ length: 100 }, (_, i) => ({
@@ -8,6 +9,13 @@ const programs = Array.from({ length: 100 }, (_, i) => ({
   name: `Program ${i + 1}`,
   college: `College ${((i % 50) + 1)}`,
 }));
+
+// Colleges Component
+const colleges = Array.from({ length: 50 }, (_, i) => ({
+  code: `C${String(i + 1).padStart(3, "0")}`,
+  name: `College ${i + 1}`,
+}));
+
 
 function Programs() {
   const handleEdit = (college) => {
@@ -19,9 +27,16 @@ function Programs() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [programsList, setProgramsList] = useState(programs);
+  const [showAddPopup, setShowAddPopup] = useState(false);
+
+  const handleAddProgarm = (newProgram) => {
+    setProgramsList((prev) => [...prev, newProgram]);
+  };
+
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedPrograms = programs.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(programs.length / itemsPerPage);
+  const paginatedPrograms = programsList.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(programsList.length / itemsPerPage);
 
   return (
     <div className="content">
@@ -31,6 +46,9 @@ function Programs() {
           <input type="text" className="search-bar" placeholder="Search" />
           <SearchIcon className="search-icon"/>
         </div>
+        <button className="btn btn-primary add-program-btn" onClick={() => setShowAddPopup(true)}>
+          + Add Program
+        </button>
       </div>
 
       <div className="table-container">
@@ -71,6 +89,13 @@ function Programs() {
           </button>
         </div>
       </div>
+      {showAddPopup && (
+        <AddProgram
+          colleges={colleges}
+          onAdd={handleAddProgarm}
+          onClose={() => setShowAddPopup(false)}
+        />
+      )}
     </div>
   );
 }
