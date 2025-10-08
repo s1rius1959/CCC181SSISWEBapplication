@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
 import ActionButtons from "./ActionButtons";
 import AddStudent from "./AddStudent";
+import SortButtons from "./SortButtons";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -12,6 +13,7 @@ function Students() {
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortOrder, setSortOrder] = useState('default'); // Track sort order (default, asc, desc)
   const itemsPerPage = 10;
 
   // Fetch students from backend
@@ -20,10 +22,14 @@ function Students() {
     fetchPrograms();
   }, []);
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (sortOrder = 'default') => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/students`);
+      const url = sortOrder === 'default' 
+        ? `${API_URL}/students`
+        : `${API_URL}/students?sort=${sortOrder}`;
+      
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch students");
       const data = await response.json();
       setStudents(data);
@@ -47,6 +53,18 @@ function Students() {
     }
   };
 
+  const fetchSingleStudent = async (studentId) => {
+    try {
+      const response = await fetch(`${API_URL}/students/${studentId}`);
+      if (!response.ok) throw new Error("Failed to fetch student");
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error("Error fetching single student:", err);
+      throw err;
+    }
+  };
+
   const handleAddStudent = async (newStudent) => {
     try {
       const response = await fetch(`${API_URL}/students`, {
@@ -62,7 +80,6 @@ function Students() {
         throw new Error(errorData.error || "Failed to add student");
       }
 
-      // Refresh students list
       await fetchStudents();
       setShowAddPopup(false);
       alert("Student added successfully!");
@@ -87,7 +104,6 @@ function Students() {
         throw new Error(errorData.error || "Failed to update student");
       }
 
-      // Refresh students list
       await fetchStudents();
       alert("Student updated successfully!");
     } catch (err) {
@@ -107,13 +123,18 @@ function Students() {
         throw new Error(errorData.error || "Failed to delete student");
       }
 
-      // Refresh students list
       await fetchStudents();
       alert("Student deleted successfully!");
     } catch (err) {
       alert(`Error: ${err.message}`);
       console.error("Error deleting student:", err);
     }
+  };
+
+  // Handle sorting - now connected to backend
+  const handleSort = (order) => {
+    setSortOrder(order);
+    fetchStudents(order); // Fetch with sort parameter
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -178,6 +199,7 @@ function Students() {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     programs={programs}
+                    onFetchSingle={fetchSingleStudent}
                   />
                 </td>
               </tr>
@@ -185,14 +207,23 @@ function Students() {
           </tbody>
         </table>
         
+        {/* Updated Pagination with Sort Buttons */}
         <div className="pagination">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
-            Prev
-          </button>
+          {/* Sort Buttons - Left Side */}
+          <SortButtons onSort={handleSort} currentSort={sortOrder} />
+          
+          {/* Page Info - Center */}
           <span>Page {currentPage} of {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
-            Next
-          </button>
+          
+          {/* Navigation Buttons - Right Side */}
+          <div className="pagination-nav">
+            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+              Prev
+            </button>
+            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

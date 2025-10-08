@@ -423,3 +423,37 @@ body {
 .add-program-btn:active {
   background-color: #001f3f;
 }
+
+
+/* Sort */
+.sort-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Sort Button Styles */
+.btn-sort {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-sort:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-sort:active {
+  transform: translateY(0);
+}

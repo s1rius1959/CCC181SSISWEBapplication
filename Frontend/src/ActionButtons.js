@@ -1,14 +1,36 @@
 import React, { useState } from "react";
 
-export default function ActionButtons({ item, onEdit, onDelete, programs = [] }) {
+const API_URL = "http://localhost:5000/api";
+
+export default function ActionButtons({ item, onEdit, onDelete, programs = [], onFetchSingle }) {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedItem, setEditedItem] = useState({ ...item });
+  const [loading, setLoading] = useState(false);
 
   // Detect type based on fields
   const isStudent = item.firstName !== undefined;
   const isCollege = item.code?.startsWith("C");
   const isProgram = item.code?.startsWith("P");
+
+  // Handle Edit button click - fetch fresh data for students
+  const handleEditClick = async () => {
+    if (isStudent && onFetchSingle) {
+      try {
+        setLoading(true);
+        const freshData = await onFetchSingle(item.id);
+        setEditedItem(freshData);
+        setShowEditPopup(true);
+      } catch (err) {
+        alert(`Error fetching student data: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setEditedItem({ ...item });
+      setShowEditPopup(true);
+    }
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -33,8 +55,12 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
     <>
       {/* --- Action Buttons --- */}
       <div className="action-buttons">
-        <button className="btn edit-btn" onClick={() => setShowEditPopup(true)}>
-          Edit
+        <button 
+          className="btn edit-btn" 
+          onClick={handleEditClick}
+          disabled={loading}
+        >
+          {loading ? "Loading..." : "Edit"}
         </button>
         <button className="btn delete-btn" onClick={() => setShowDeletePopup(true)}>
           Delete
@@ -59,7 +85,8 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       type="text"
                       name="id"
                       value={editedItem.id || ""}
-                      onChange={handleChange}
+                      disabled
+                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
                     />
                   </label>
 
@@ -70,6 +97,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       name="firstName"
                       value={editedItem.firstName || ""}
                       onChange={handleChange}
+                      required
                     />
                   </label>
 
@@ -80,6 +108,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       name="lastName"
                       value={editedItem.lastName || ""}
                       onChange={handleChange}
+                      required
                     />
                   </label>
 
@@ -89,6 +118,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       name="gender"
                       value={editedItem.gender || ""}
                       onChange={handleChange}
+                      required
                     >
                       <option value="">Select Gender</option>
                       <option value="M">Male</option>
@@ -103,6 +133,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       name="course"
                       value={editedItem.course || ""}
                       onChange={handleChange}
+                      required
                     >
                         <option value="">Select Program</option>
                         {programs.map((p) => (
@@ -119,6 +150,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                         name="yearLevel"
                         value={editedItem.yearLevel || ""}
                         onChange={handleChange}
+                        required
                     >
                         <option value="">-- Select Year Level --</option>
                         {[1, 2, 3, 4, 5].map((level) => (
@@ -135,21 +167,23 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
               {isCollege && (
                 <>
                   <label>
-                    Code:
+                    College Code:
                     <input
                       type="text"
-                      name="name"
-                      value={editedItem.name || ""}
-                      onChange={handleChange}
+                      name="code"
+                      value={editedItem.code || ""}
+                      disabled
+                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
                     />
                   </label>
                   <label>
-                    Name:
+                    College Name:
                     <input
                       type="text"
                       name="name"
                       value={editedItem.name || ""}
                       onChange={handleChange}
+                      required
                     />
                   </label>
                 </>
@@ -164,7 +198,8 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       type="text"
                       name="code"
                       value={editedItem.code || ""}
-                      onChange={handleChange}
+                      disabled
+                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
                     />
                   </label>
                   <label>
@@ -174,6 +209,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       name="name"
                       value={editedItem.name || ""}
                       onChange={handleChange}
+                      required
                     />
                   </label>
                   <label>
@@ -183,7 +219,8 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [] })
                       name="college"
                       value={editedItem.college || ""}
                       onChange={handleChange}
-                      disabled   // cannot be changed
+                      disabled
+                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
                     />
                   </label>
                 </>

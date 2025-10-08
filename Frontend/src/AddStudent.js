@@ -18,7 +18,6 @@ export default function AddStudent({ programs, onAdd, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onAdd(formData);
-    onClose();
   };
 
   return (
@@ -45,9 +44,9 @@ export default function AddStudent({ programs, onAdd, onClose }) {
             Gender:
             <select name="gender" value={formData.gender} onChange={handleChange} required>
               <option value="">-- Select Gender --</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="M">Male</option>
+              <option value="F">Female</option>
+              <option value="Others">Others</option>
             </select>
           </label>
 
@@ -56,7 +55,9 @@ export default function AddStudent({ programs, onAdd, onClose }) {
             <select name="course" value={formData.course} onChange={handleChange} required>
               <option value="">-- Select Program --</option>
               {programs.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p.code} value={p.code}>
+                  {p.code} - {p.name}
+                </option>
               ))}
             </select>
           </label>
@@ -64,6 +65,7 @@ export default function AddStudent({ programs, onAdd, onClose }) {
           <label>
             Year Level:
             <select name="yearLevel" value={formData.yearLevel} onChange={handleChange} required>
+              <option value="">-- Select Year Level --</option>
               {[1, 2, 3, 4, 5].map(level => (
                 <option key={level} value={level}>{level}</option>
               ))}
