@@ -3,6 +3,7 @@ import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
 import ActionButtons from "./ActionButtons";
 import AddStudent from "./AddStudent";
 import SortButtons from "./SortButtons";
+import Notification from "./Notifications";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -13,8 +14,21 @@ function Students() {
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [sortOrder, setSortOrder] = useState('default'); // Track sort order (default, asc, desc)
+  const [sortOrder, setSortOrder] = useState('default');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState(null);
+  const [notification, setNotification] = useState(null);
   const itemsPerPage = 10;
+
+  // Show notification helper
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+  };
+
+  // Close notification
+  const closeNotification = () => {
+    setNotification(null);
+  };
 
   // Fetch students from backend
   useEffect(() => {
@@ -22,23 +36,54 @@ function Students() {
     fetchPrograms();
   }, []);
 
-  const fetchStudents = async (sortOrder = 'default') => {
+  // Debounced search - wait for user to stop typing
+  useEffect(() => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      fetchStudents(sortOrder, false, searchQuery);
+    }, 300);
+
+    setSearchTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [searchQuery]);
+
+  const fetchStudents = async (sortOrder = 'default', showLoading = true, search = '') => {
     try {
-      setLoading(true);
-      const url = sortOrder === 'default' 
-        ? `${API_URL}/students`
-        : `${API_URL}/students?sort=${sortOrder}`;
+      if (showLoading) setLoading(true);
+      
+      let url = `${API_URL}/students`;
+      const params = new URLSearchParams();
+      
+      if (sortOrder !== 'default') {
+        params.append('sort', sortOrder);
+      }
+      
+      if (search.trim()) {
+        params.append('search', search.trim());
+      }
+      
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
       
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch students");
       const data = await response.json();
       setStudents(data);
       setError(null);
+      setCurrentPage(1);
     } catch (err) {
       setError(err.message);
       console.error("Error fetching students:", err);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -80,12 +125,13 @@ function Students() {
         throw new Error(errorData.error || "Failed to add student");
       }
 
-      await fetchStudents();
+      await fetchStudents(sortOrder, false, searchQuery);
       setShowAddPopup(false);
-      alert("Student added successfully!");
+      showNotification("Student Added Successfully!", "success");
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showNotification(err.message, "error");
       console.error("Error adding student:", err);
+      throw err;
     }
   };
 
@@ -104,10 +150,10 @@ function Students() {
         throw new Error(errorData.error || "Failed to update student");
       }
 
-      await fetchStudents();
-      alert("Student updated successfully!");
+      await fetchStudents(sortOrder, false, searchQuery);
+      showNotification("Student Updated Successfully!", "success");
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showNotification(err.message, "error");
       console.error("Error updating student:", err);
     }
   };
@@ -123,18 +169,23 @@ function Students() {
         throw new Error(errorData.error || "Failed to delete student");
       }
 
-      await fetchStudents();
-      alert("Student deleted successfully!");
+      await fetchStudents(sortOrder, false, searchQuery);
+      showNotification("Student Deleted Successfully!", "success");
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showNotification(err.message, "error");
       console.error("Error deleting student:", err);
     }
   };
 
-  // Handle sorting - now connected to backend
+  // Handle sorting
   const handleSort = (order) => {
     setSortOrder(order);
-    fetchStudents(order); // Fetch with sort parameter
+    fetchStudents(order, false, searchQuery);
+  };
+
+  // Handle search input
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -153,17 +204,32 @@ function Students() {
     return (
       <div className="content">
         <h2>Error: {error}</h2>
-        <button onClick={fetchStudents}>Retry</button>
+        <button onClick={() => fetchStudents()}>Retry</button>
       </div>
     );
   }
 
   return (
     <div className="content">
+      {/* Custom Notification */}
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={closeNotification}
+        />
+      )}
+
       <div className="content-header">
         <h2>Students</h2>
         <div className="search-container">
-          <input type="text" className="search-bar" placeholder="Search" />
+          <input 
+            type="text" 
+            className="search-bar" 
+            placeholder="Search students..." 
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
           <SearchIcon className="search-icon"/>
         </div>
         <button className="btn btn-success add-student-btn" onClick={() => setShowAddPopup(true)}>
@@ -185,42 +251,50 @@ function Students() {
             </tr>
           </thead>
           <tbody>
-            {paginatedStudents.map((student) => (
-              <tr key={student.id}>
-                <td>{student.id}</td>
-                <td>{student.firstName}</td>
-                <td>{student.lastName}</td>
-                <td>{student.gender}</td>
-                <td>{student.course}</td>
-                <td>{student.yearLevel}</td>
-                <td>
-                  <ActionButtons
-                    item={student}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    programs={programs}
-                    onFetchSingle={fetchSingleStudent}
-                  />
+            {paginatedStudents.length > 0 ? (
+              paginatedStudents.map((student) => (
+                <tr key={student.id}>
+                  <td>{student.id}</td>
+                  <td>{student.firstName}</td>
+                  <td>{student.lastName}</td>
+                  <td>{student.gender}</td>
+                  <td>{student.course}</td>
+                  <td>{student.yearLevel}</td>
+                  <td>
+                    <ActionButtons
+                      item={student}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      programs={programs}
+                      onFetchSingle={fetchSingleStudent}
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                  {searchQuery ? `No students found matching "${searchQuery}"` : 'No students found'}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
         
-        {/* Updated Pagination with Sort Buttons */}
+        {/* Pagination with Sort Buttons */}
         <div className="pagination">
-          {/* Sort Buttons - Left Side */}
           <SortButtons onSort={handleSort} currentSort={sortOrder} />
           
-          {/* Page Info - Center */}
-          <span>Page {currentPage} of {totalPages}</span>
+          <span>
+            Page {totalPages > 0 ? currentPage : 0} of {totalPages}
+            {searchQuery && students.length > 0 && ` (${students.length} result${students.length !== 1 ? 's' : ''})`}
+          </span>
           
-          {/* Navigation Buttons - Right Side */}
           <div className="pagination-nav">
             <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
               Prev
             </button>
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+            <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage((p) => p + 1)}>
               Next
             </button>
           </div>

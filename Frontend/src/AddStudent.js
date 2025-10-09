@@ -10,49 +10,222 @@ export default function AddStudent({ programs, onAdd, onClose }) {
     yearLevel: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateStudentIdFormat = (id) => {
+    // Format: YYYY-NNNN (e.g., 2024-0001)
+    const regex = /^\d{4}-\d{4}$/;
+    return regex.test(id);
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+
+    // Format student ID automatically
+    if (name === "id") {
+      let formatted = value.replace(/[^\d-]/g, ""); // Remove non-digits and non-dash
+      
+      // Auto-add dash after 4 digits
+      if (formatted.length === 4 && !formatted.includes("-")) {
+        formatted += "-";
+      }
+      
+      // Limit to YYYY-NNNN format
+      if (formatted.length > 9) {
+        formatted = formatted.slice(0, 9);
+      }
+      
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Student ID validation
+    if (!formData.id.trim()) {
+      newErrors.id = "Student ID is required";
+    } else if (!validateStudentIdFormat(formData.id)) {
+      newErrors.id = "Student ID must be in format YYYY-NNNN (e.g., 2024-0001)";
+    }
+
+    // First Name validation
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    } else if (formData.firstName.length < 2) {
+      newErrors.firstName = "First name must be at least 2 characters";
+    }
+
+    // Last Name validation
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    } else if (formData.lastName.length < 2) {
+      newErrors.lastName = "Last name must be at least 2 characters";
+    }
+
+    // Gender validation
+    if (!formData.gender) {
+      newErrors.gender = "Please select a gender";
+    }
+
+    // Course validation
+    if (!formData.course) {
+      newErrors.course = "Please select a program";
+    }
+
+    // Year Level validation
+    if (!formData.yearLevel) {
+      newErrors.yearLevel = "Please select a year level";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onAdd(formData);
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      await onAdd(formData);
+      // Reset form after successful submission
+      setFormData({
+        id: "",
+        firstName: "",
+        lastName: "",
+        gender: "",
+        course: "",
+        yearLevel: "",
+      });
+      setErrors({});
+    } catch (error) {
+      console.error("Error adding student:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      id: "",
+      firstName: "",
+      lastName: "",
+      gender: "",
+      course: "",
+      yearLevel: "",
+    });
+    setErrors({});
   };
 
   return (
-    <div className="popup-overlay">
-      <div className="popup">
-        <h3>Add Student</h3>
-        <form onSubmit={handleSubmit}>
-          <label>
-            Student ID:
-            <input type="text" name="id" value={formData.id} onChange={handleChange} required />
-          </label>
+    <div className="add-student-overlay">
+      <div className="add-student-modal">
+        <div className="add-student-header">
+          <h3>Add New Student</h3>
+        </div>
 
-          <label>
-            First Name:
-            <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
-          </label>
+        <form onSubmit={handleSubmit} className="add-student-form">
+          {/* Student ID */}
+          <div className="form-group">
+            <label className="form-label">
+              Student ID <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="id"
+              value={formData.id}
+              onChange={handleChange}
+              placeholder="2024-0001"
+              className={`form-input ${errors.id ? 'error' : ''}`}
+              maxLength="9"
+            />
+            {errors.id && (
+              <p className="error-message">{errors.id}</p>
+            )}
+            <small className="input-hint">Format: YYYY-NNNN (e.g., 2024-0001)</small>
+          </div>
 
-          <label>
-            Last Name:
-            <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
-          </label>
+          {/* First Name */}
+          <div className="form-group">
+            <label className="form-label">
+              First Name <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              placeholder="Enter first name"
+              className={`form-input ${errors.firstName ? 'error' : ''}`}
+            />
+            {errors.firstName && (
+              <p className="error-message">{errors.firstName}</p>
+            )}
+          </div>
 
-          <label>
-            Gender:
-            <select name="gender" value={formData.gender} onChange={handleChange} required>
+          {/* Last Name */}
+          <div className="form-group">
+            <label className="form-label">
+              Last Name <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              placeholder="Enter last name"
+              className={`form-input ${errors.lastName ? 'error' : ''}`}
+            />
+            {errors.lastName && (
+              <p className="error-message">{errors.lastName}</p>
+            )}
+          </div>
+
+          {/* Gender */}
+          <div className="form-group">
+            <label className="form-label">
+              Gender <span className="required">*</span>
+            </label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className={`form-input ${errors.gender ? 'error' : ''}`}
+            >
               <option value="">-- Select Gender --</option>
               <option value="M">Male</option>
               <option value="F">Female</option>
               <option value="Others">Others</option>
             </select>
-          </label>
+            {errors.gender && (
+              <p className="error-message">{errors.gender}</p>
+            )}
+          </div>
 
-          <label>
-            Program:
-            <select name="course" value={formData.course} onChange={handleChange} required>
+          {/* Program */}
+          <div className="form-group">
+            <label className="form-label">
+              Program <span className="required">*</span>
+            </label>
+            <select
+              name="course"
+              value={formData.course}
+              onChange={handleChange}
+              className={`form-input ${errors.course ? 'error' : ''}`}
+            >
               <option value="">-- Select Program --</option>
               {programs.map((p) => (
                 <option key={p.code} value={p.code}>
@@ -60,21 +233,68 @@ export default function AddStudent({ programs, onAdd, onClose }) {
                 </option>
               ))}
             </select>
-          </label>
+            {errors.course && (
+              <p className="error-message">{errors.course}</p>
+            )}
+          </div>
 
-          <label>
-            Year Level:
-            <select name="yearLevel" value={formData.yearLevel} onChange={handleChange} required>
+          {/* Year Level */}
+          <div className="form-group">
+            <label className="form-label">
+              Year Level <span className="required">*</span>
+            </label>
+            <select
+              name="yearLevel"
+              value={formData.yearLevel}
+              onChange={handleChange}
+              className={`form-input ${errors.yearLevel ? 'error' : ''}`}
+            >
               <option value="">-- Select Year Level --</option>
-              {[1, 2, 3, 4, 5].map(level => (
-                <option key={level} value={level}>{level}</option>
+              {[1, 2, 3, 4, 5].map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
               ))}
             </select>
-          </label>
+            {errors.yearLevel && (
+              <p className="error-message">{errors.yearLevel}</p>
+            )}
+          </div>
 
-          <div className="popup-actions">
-            <button type="submit" className="btn btn-success">Add</button>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          {/* Action Buttons */}
+          <div className="form-actions">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn btn-submit"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="spinner"></span>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <span>✓</span> Add Student
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={isSubmitting}
+              className="btn btn-reset"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="btn btn-cancel"
+            >
+              Cancel
+            </button>
           </div>
         </form>
       </div>

@@ -8,14 +8,14 @@ export default function SortButtons({ onSort, currentSort }) {
         onClick={() => onSort('asc')}
         title="Sort Ascending (A-Z)"
       >
-        ↑ A-Z
+        ↑
       </button>
       <button 
         className={`btn btn-sort ${currentSort === 'desc' ? 'active' : ''}`}
         onClick={() => onSort('desc')}
         title="Sort Descending (Z-A)"
       >
-        ↓ Z-A
+        ↓
       </button>
       <button 
         className={`btn btn-sort-reset ${currentSort === 'default' ? 'active' : ''}`}

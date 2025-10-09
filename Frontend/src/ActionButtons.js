@@ -2,64 +2,135 @@ import React, { useState } from "react";
 
 const API_URL = "http://localhost:5000/api";
 
-export default function ActionButtons({ item, onEdit, onDelete, programs = [], onFetchSingle }) {
+export default function ActionButtons({ item, onEdit, onDelete, programs = [], colleges = [], onFetchSingle }) {
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedItem, setEditedItem] = useState({ ...item });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // Detect type based on fields
   const isStudent = item.firstName !== undefined;
-  const isCollege = item.code?.startsWith("C");
-  const isProgram = item.code?.startsWith("P");
+  const isCollege = item.code?.startsWith("C") && item.name !== undefined && !item.collegeCode;
+  const isProgram = item.collegeCode !== undefined;
 
-  // Handle Edit button click - fetch fresh data for students
+  const validateStudentIdFormat = (id) => {
+    const regex = /^\d{4}-\d{4}$/;
+    return regex.test(id);
+  };
+
+  // Fetch fresh data before editing
   const handleEditClick = async () => {
-    if (isStudent && onFetchSingle) {
+    if ((isStudent || isCollege) && onFetchSingle) {
       try {
         setLoading(true);
-        const freshData = await onFetchSingle(item.id);
+        const freshData = await onFetchSingle(isStudent ? item.id : item.code);
         setEditedItem(freshData);
         setShowEditPopup(true);
+        setErrors({});
       } catch (err) {
-        alert(`Error fetching student data: ${err.message}`);
+        alert(`Error fetching data: ${err.message}`);
       } finally {
         setLoading(false);
       }
     } else {
-      setEditedItem({ ...item });
+      // For programs, ensure collegeCode is set
+      const itemData = { ...item };
+      if (isProgram && !itemData.collegeCode && item.college) {
+        itemData.collegeCode = item.college;
+      }
+      setEditedItem(itemData);
       setShowEditPopup(true);
+      setErrors({});
     }
   };
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // for Year Level
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+
     if (name === "yearLevel") {
-        const num = parseInt(value, 10);
-        if (num > 5) return; // max Year Level is 5
-        if (num < 1) return; // min Year Level is 1
+      const num = parseInt(value, 10);
+      if (num > 5 || num < 1) return;
     }
-    setEditedItem({ ...editedItem, [name]: value });
+
+    if (name === "id" && isStudent) {
+      let formatted = value.replace(/[^\d-]/g, "");
+      if (formatted.length === 4 && !formatted.includes("-")) formatted += "-";
+      if (formatted.length > 9) formatted = formatted.slice(0, 9);
+      setEditedItem({ ...editedItem, [name]: formatted });
+    } else if (name === "code" && (isCollege || isProgram)) {
+      setEditedItem({ ...editedItem, [name]: value.toUpperCase() });
+    } else {
+      setEditedItem({ ...editedItem, [name]: value });
+    }
   };
 
-  // Handle edit submission
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (isStudent) {
+      if (!editedItem.id || !editedItem.id.trim()) newErrors.id = "Student ID is required";
+      else if (!validateStudentIdFormat(editedItem.id)) newErrors.id = "Format must be YYYY-NNNN";
+
+      if (!editedItem.firstName || editedItem.firstName.trim().length < 2)
+        newErrors.firstName = "First name must be at least 2 characters";
+      if (!editedItem.lastName || editedItem.lastName.trim().length < 2)
+        newErrors.lastName = "Last name must be at least 2 characters";
+      if (!editedItem.gender) newErrors.gender = "Gender is required";
+      if (!editedItem.course) newErrors.course = "Program is required";
+      if (!editedItem.yearLevel) newErrors.yearLevel = "Year level is required";
+    }
+
+    if (isCollege) {
+      if (!editedItem.code || !editedItem.code.trim())
+        newErrors.code = "College code is required";
+      else if (editedItem.code.length < 2)
+        newErrors.code = "College code must be at least 2 characters";
+
+      if (!editedItem.name || editedItem.name.trim().length < 3)
+        newErrors.name = "College name must be at least 3 characters";
+    }
+
+    if (isProgram) {
+      if (!editedItem.code || !editedItem.code.trim())
+        newErrors.code = "Program code is required";
+      else if (editedItem.code.length < 2)
+        newErrors.code = "Program code must be at least 2 characters";
+
+      if (!editedItem.name || editedItem.name.trim().length < 3)
+        newErrors.name = "Program name must be at least 3 characters";
+
+      if (!editedItem.collegeCode)
+        newErrors.collegeCode = "College is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    onEdit(editedItem);
+    if (!validateForm()) return;
+
+    // For programs, we need to convert collegeCode to college for the backend
+    if (isProgram) {
+      const programData = {
+        code: editedItem.code,
+        name: editedItem.name,
+        college: editedItem.collegeCode
+      };
+      onEdit(programData, item.code);
+    } else {
+      onEdit(editedItem, item.code);
+    }
     setShowEditPopup(false);
   };
 
   return (
     <>
-      {/* --- Action Buttons --- */}
       <div className="action-buttons">
-        <button 
-          className="btn edit-btn" 
-          onClick={handleEditClick}
-          disabled={loading}
-        >
+        <button className="btn edit-btn" onClick={handleEditClick} disabled={loading}>
           {loading ? "Loading..." : "Edit"}
         </button>
         <button className="btn delete-btn" onClick={() => setShowDeletePopup(true)}>
@@ -67,7 +138,6 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
         </button>
       </div>
 
-      {/* --- Edit Popup --- */}
       {showEditPopup && (
         <div className="popup-overlay">
           <div className="popup">
@@ -76,7 +146,6 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
             </h3>
 
             <form onSubmit={handleEditSubmit}>
-              {/* Student fields */}
               {isStudent && (
                 <>
                   <label>
@@ -85,9 +154,16 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       type="text"
                       name="id"
                       value={editedItem.id || ""}
-                      disabled
-                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
+                      onChange={handleChange}
+                      maxLength="9"
+                      placeholder="2024-0001"
+                      className={errors.id ? "input-error" : ""}
+                      required
                     />
+                    {errors.id && <span className="error-text">{errors.id}</span>}
+                    <small style={{ display: "block", marginTop: "4px", color: "#666" }}>
+                      Format: YYYY-NNNN
+                    </small>
                   </label>
 
                   <label>
@@ -97,8 +173,10 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       name="firstName"
                       value={editedItem.firstName || ""}
                       onChange={handleChange}
+                      className={errors.firstName ? "input-error" : ""}
                       required
                     />
+                    {errors.firstName && <span className="error-text">{errors.firstName}</span>}
                   </label>
 
                   <label>
@@ -108,8 +186,10 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       name="lastName"
                       value={editedItem.lastName || ""}
                       onChange={handleChange}
+                      className={errors.lastName ? "input-error" : ""}
                       required
                     />
+                    {errors.lastName && <span className="error-text">{errors.lastName}</span>}
                   </label>
 
                   <label>
@@ -118,13 +198,15 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       name="gender"
                       value={editedItem.gender || ""}
                       onChange={handleChange}
+                      className={errors.gender ? "input-error" : ""}
                       required
                     >
-                      <option value="">Select Gender</option>
+                      <option value="">-- Select Gender --</option>
                       <option value="M">Male</option>
                       <option value="F">Female</option>
                       <option value="Others">Others</option>
                     </select>
+                    {errors.gender && <span className="error-text">{errors.gender}</span>}
                   </label>
 
                   <label>
@@ -133,37 +215,40 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       name="course"
                       value={editedItem.course || ""}
                       onChange={handleChange}
+                      className={errors.course ? "input-error" : ""}
                       required
                     >
-                        <option value="">Select Program</option>
-                        {programs.map((p) => (
-                            <option key={p.code} value={p.code}>
-                                {p.code} - {p.name}
-                            </option>
-                        ))}
+                      <option value="">-- Select Program --</option>
+                      {programs.map((p) => (
+                        <option key={p.code} value={p.code}>
+                          {p.code} - {p.name}
+                        </option>
+                      ))}
                     </select>
+                    {errors.course && <span className="error-text">{errors.course}</span>}
                   </label>
 
                   <label>
                     Year Level:
                     <select
-                        name="yearLevel"
-                        value={editedItem.yearLevel || ""}
-                        onChange={handleChange}
-                        required
+                      name="yearLevel"
+                      value={editedItem.yearLevel || ""}
+                      onChange={handleChange}
+                      className={errors.yearLevel ? "input-error" : ""}
+                      required
                     >
-                        <option value="">-- Select Year Level --</option>
-                        {[1, 2, 3, 4, 5].map((level) => (
+                      <option value="">-- Select Year Level --</option>
+                      {[1, 2, 3, 4, 5].map((level) => (
                         <option key={level} value={level}>
-                            {level}
+                          {level}
                         </option>
-                        ))}
+                      ))}
                     </select>
-                    </label>
+                    {errors.yearLevel && <span className="error-text">{errors.yearLevel}</span>}
+                  </label>
                 </>
               )}
 
-              {/* College fields */}
               {isCollege && (
                 <>
                   <label>
@@ -172,10 +257,18 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       type="text"
                       name="code"
                       value={editedItem.code || ""}
-                      disabled
-                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
+                      onChange={handleChange}
+                      maxLength="10"
+                      placeholder="e.g., CCS"
+                      className={errors.code ? "input-error" : ""}
+                      required
                     />
+                    {errors.code && <span className="error-text">{errors.code}</span>}
+                    <small style={{ display: "block", marginTop: "4px", color: "#666" }}>
+                      Letters will be automatically capitalized
+                    </small>
                   </label>
+
                   <label>
                     College Name:
                     <input
@@ -183,13 +276,14 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       name="name"
                       value={editedItem.name || ""}
                       onChange={handleChange}
+                      className={errors.name ? "input-error" : ""}
                       required
                     />
+                    {errors.name && <span className="error-text">{errors.name}</span>}
                   </label>
                 </>
               )}
 
-              {/* Program fields */}
               {isProgram && (
                 <>
                   <label>
@@ -198,10 +292,18 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       type="text"
                       name="code"
                       value={editedItem.code || ""}
-                      disabled
-                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
+                      onChange={handleChange}
+                      maxLength="10"
+                      placeholder="e.g., BSCS"
+                      className={errors.code ? "input-error" : ""}
+                      required
                     />
+                    {errors.code && <span className="error-text">{errors.code}</span>}
+                    <small style={{ display: "block", marginTop: "4px", color: "#666" }}>
+                      Letters will be automatically capitalized
+                    </small>
                   </label>
+
                   <label>
                     Program Name:
                     <input
@@ -209,19 +311,29 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
                       name="name"
                       value={editedItem.name || ""}
                       onChange={handleChange}
+                      className={errors.name ? "input-error" : ""}
                       required
                     />
+                    {errors.name && <span className="error-text">{errors.name}</span>}
                   </label>
+
                   <label>
-                    College Code:
-                    <input
-                      type="text"
-                      name="college"
-                      value={editedItem.college || ""}
+                    College:
+                    <select
+                      name="collegeCode"
+                      value={editedItem.collegeCode || ""}
                       onChange={handleChange}
-                      disabled
-                      style={{ backgroundColor: '#e9ecef', cursor: 'not-allowed' }}
-                    />
+                      className={errors.collegeCode ? "input-error" : ""}
+                      required
+                    >
+                      <option value="">-- Select College --</option>
+                      {colleges.map((college) => (
+                        <option key={college.code} value={college.code}>
+                          {college.code} - {college.name}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.collegeCode && <span className="error-text">{errors.collegeCode}</span>}
                   </label>
                 </>
               )}
@@ -243,7 +355,6 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
         </div>
       )}
 
-      {/* --- Delete Confirmation Popup --- */}
       {showDeletePopup && (
         <div className="popup-overlay">
           <div className="popup">
@@ -258,10 +369,7 @@ export default function ActionButtons({ item, onEdit, onDelete, programs = [], o
               >
                 Yes, Delete
               </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowDeletePopup(false)}
-              >
+              <button className="btn btn-secondary" onClick={() => setShowDeletePopup(false)}>
                 Cancel
               </button>
             </div>

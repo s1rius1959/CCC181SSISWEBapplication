@@ -7,9 +7,11 @@ import os
 
 # Import route blueprints
 from student_routes import init_student_routes
+from college_routes import init_college_routes
+from program_routes import init_program_routes
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React frontend
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
 # Load environment variables from .env
 load_dotenv()
@@ -37,9 +39,14 @@ def index():
     except Exception as e:
         return f"<h3>Failed to connect:</h3><pre>{e}</pre>"
 
-# Register blueprints
+# For loading the blueprints
 student_bp = init_student_routes(engine)
+college_bp = init_college_routes(engine)
+program_bp = init_program_routes(engine)
+
 app.register_blueprint(student_bp)
+app.register_blueprint(college_bp)
+app.register_blueprint(program_bp)
 
 
 if __name__ == "__main__":
