@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 export default function AddProgram({ onAdd, onClose, colleges }) {
   const [formData, setFormData] = useState({
@@ -12,38 +12,35 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Clear error for this field when user starts typing
+
+    // Clear field-specific error when typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
-    // Auto-capitalize program code
+    // Auto-uppercase for code
     if (name === "code") {
-      setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+      setFormData((prev) => ({ ...prev, [name]: value.toUpperCase() }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
 
-    // Program Code validation
     if (!formData.code.trim()) {
       newErrors.code = "Program code is required";
     } else if (formData.code.length < 2) {
       newErrors.code = "Program code must be at least 2 characters";
     }
 
-    // Program Name validation
     if (!formData.name.trim()) {
       newErrors.name = "Program name is required";
     } else if (formData.name.length < 3) {
       newErrors.name = "Program name must be at least 3 characters";
     }
 
-    // College validation
     if (!formData.college) {
       newErrors.college = "Please select a college";
     }
@@ -54,16 +51,14 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
+
     try {
       await onAdd(formData);
-      // Reset form after successful submission
+      // Reset form
       setFormData({
         code: "",
         name: "",
@@ -105,13 +100,18 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
               value={formData.code}
               onChange={handleChange}
               placeholder="e.g., BSCS"
-              className={`form-input ${errors.code ? 'error' : ''}`}
+              className={`form-input ${errors.code ? "error" : ""}`}
               maxLength="10"
             />
-            {errors.code && (
-              <p className="error-message">{errors.code}</p>
-            )}
-            <small className="input-hint">Letters will be automatically capitalized</small>
+            <div className="note-area">
+              {errors.code ? (
+                <p className="note error-note">{errors.code}</p>
+              ) : (
+                <p className="note hint-note">
+                  Letters will be automatically capitalized
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Program Name */}
@@ -125,11 +125,17 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g., Bachelor of Science in Computer Science"
-              className={`form-input ${errors.name ? 'error' : ''}`}
+              className={`form-input ${errors.name ? "error" : ""}`}
             />
-            {errors.name && (
-              <p className="error-message">{errors.name}</p>
-            )}
+            <div className="note-area">
+              {errors.name ? (
+                <p className="note error-note">{errors.name}</p>
+              ) : (
+                <p className="note hint-note">
+                  Enter the full program name
+                </p>
+              )}
+            </div>
           </div>
 
           {/* College */}
@@ -141,7 +147,7 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
               name="college"
               value={formData.college}
               onChange={handleChange}
-              className={`form-input ${errors.college ? 'error' : ''}`}
+              className={`form-input ${errors.college ? "error" : ""}`}
             >
               <option value="">-- Select College --</option>
               {colleges.map((college) => (
@@ -150,9 +156,13 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
                 </option>
               ))}
             </select>
-            {errors.college && (
-              <p className="error-message">{errors.college}</p>
-            )}
+            <div className="note-area">
+              {errors.college ? (
+                <p className="note error-note">{errors.college}</p>
+              ) : (
+                <p className="note hint-note">Choose the college</p>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}
@@ -173,6 +183,7 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
                 </>
               )}
             </button>
+
             <button
               type="button"
               onClick={handleReset}
@@ -181,6 +192,7 @@ export default function AddProgram({ onAdd, onClose, colleges }) {
             >
               Reset
             </button>
+
             <button
               type="button"
               onClick={onClose}

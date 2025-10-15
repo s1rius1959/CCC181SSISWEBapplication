@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
 import ActionButtons from "./ActionButtons";
 import AddProgram from "./AddProgram";
-import SortButtons from "./SortButtons";
 import Notification from "./Notifications";
+import SearchFilter from "./SearchFilter";
+import JumpToPage from "./JumptoPage";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -13,81 +13,54 @@ function Programs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortOrder, setSortOrder] = useState('default');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchTimeout, setSearchTimeout] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("all");
+
+  const [sortConfig, setSortConfig] = useState({
+    key: "program_code",
+    direction: "asc",
+  });
+
   const itemsPerPage = 10;
 
-  // Show notification helper
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-  };
+  const filterOptions = [
+    { value: "all", label: "All Fields" },
+    { value: "code", label: "Program Code" },
+    { value: "name", label: "Program Name" },
+    { value: "collegeCode", label: "College Code" },
+  ];
 
+  const showNotification = (message, type = "success") =>
+    setNotification({ message, type });
   const closeNotification = () => setNotification(null);
 
-  // Fetch programs and colleges from backend
   useEffect(() => {
-    fetchPrograms();
+    fetchPrograms(sortConfig.direction, sortConfig.key);
     fetchColleges();
   }, []);
 
-  // Debounced search
-  useEffect(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-
-    const timeout = setTimeout(() => {
-      fetchPrograms(sortOrder, false, searchQuery);
-    }, 300);
-
-    setSearchTimeout(timeout);
-
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [searchQuery]);
-
-  const fetchPrograms = async (sortOrder = 'default', showLoading = true, search = '') => {
+  const fetchPrograms = async (sort = "asc", sortBy = "program_code") => {
     try {
-      if (showLoading) setLoading(true);
-      
-      let url = `${API_URL}/programs`;
-      const params = new URLSearchParams();
-      
-      if (sortOrder !== 'default') {
-        params.append('sort', sortOrder);
+      setLoading(true);
+      let url = `${API_URL}/programs?sort=${sort}&sort_by=${sortBy}`;
+      if (searchQuery.trim()) {
+        url += `&search=${encodeURIComponent(searchQuery.trim())}&search_field=${searchField}`;
       }
-      
-      if (search.trim()) {
-        params.append('search', search.trim());
-      }
-      
-      const queryString = params.toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
-      
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch programs");
       const data = await response.json();
       setPrograms(data);
-      setError(null);
-      setCurrentPage(1);
     } catch (err) {
-      setError(err.message);
       console.error("Error fetching programs:", err);
     } finally {
-      if (showLoading) setLoading(false);
+      setLoading(false);
     }
   };
 
   const fetchColleges = async () => {
     try {
       const response = await fetch(`${API_URL}/colleges`);
-      if (!response.ok) throw new Error("Failed to fetch colleges");
       const data = await response.json();
       setColleges(data);
     } catch (err) {
@@ -99,125 +72,95 @@ function Programs() {
     try {
       const response = await fetch(`${API_URL}/programs`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newProgram),
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to add program");
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to add program");
-      }
-
-      await fetchPrograms(sortOrder, false, searchQuery);
+      await fetchPrograms(sortConfig.direction, sortConfig.key);
       setShowAddPopup(false);
-      showNotification("Program Added Successfully!", "success");
+      showNotification("Program added successfully!", "success");
     } catch (err) {
       showNotification(err.message, "error");
-      console.error("Error adding program:", err);
     }
   };
 
-  const handleEdit = async (editedProgram, oldCode) => {
+  const handleEditProgram = async (editedProgram, originalCode) => {
     try {
-      const response = await fetch(`${API_URL}/programs/${oldCode}`, {
+      const response = await fetch(`${API_URL}/programs/${originalCode}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editedProgram),
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to edit program");
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update program");
-      }
-
-      await fetchPrograms(sortOrder, false, searchQuery);
-      showNotification("Program Updated Successfully!", "success");
+      await fetchPrograms(sortConfig.direction, sortConfig.key);
+      showNotification("Program updated successfully!", "success");
     } catch (err) {
       showNotification(err.message, "error");
-      console.error("Error updating program:", err);
     }
   };
 
-  const handleDelete = async (program) => {
+  const handleDeleteProgram = async (program) => {
     try {
       const response = await fetch(`${API_URL}/programs/${program.code}`, {
         method: "DELETE",
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to delete program");
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete program");
-      }
-
-      await fetchPrograms(sortOrder, false, searchQuery);
-      showNotification("Program Deleted Successfully!", "success");
+      await fetchPrograms(sortConfig.direction, sortConfig.key);
+      showNotification("Program deleted successfully!", "success");
     } catch (err) {
       showNotification(err.message, "error");
-      console.error("Error deleting program:", err);
     }
   };
 
-  const handleSort = (order) => {
-    setSortOrder(order);
-    fetchPrograms(order, false, searchQuery);
+  const handleHeaderClick = (columnKey) => {
+    let direction = "asc";
+    if (sortConfig.key === columnKey && sortConfig.direction === "asc") direction = "desc";
+    setSortConfig({ key: columnKey, direction });
+    fetchPrograms(direction, columnKey);
   };
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+  const handleResetSort = () => {
+    const defaultSort = { key: "program_code", direction: "asc" };
+    setSortConfig(defaultSort);
+    setSearchQuery("");
+    setSearchField("all");
+    fetchPrograms(defaultSort.direction, defaultSort.key);
   };
+
+  const handleSearch = () => fetchPrograms(sortConfig.direction, sortConfig.key);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedPrograms = programs.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(programs.length / itemsPerPage);
 
-  if (loading) {
-    return (
-      <div className="content">
-        <h2>Loading programs...</h2>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="content">
-        <h2>Error: {error}</h2>
-        <button onClick={() => fetchPrograms()}>Retry</button>
-      </div>
-    );
-  }
-
   return (
     <div className="content">
-      {/* Custom Notification */}
-      {notification && (
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          onClose={closeNotification}
-        />
-      )}
-
+      {notification && <Notification {...notification} onClose={closeNotification} />}
       <div className="content-header">
         <h2>Programs</h2>
-        <div className="search-container">
-          <input 
-            type="text" 
-            className="search-bar" 
-            placeholder="Search programs..." 
+        <div className="search-area">
+          <input
+            type="text"
+            placeholder="Search programs..."
+            className="search-input"
             value={searchQuery}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <SearchIcon className="search-icon" />
+          <SearchFilter
+            currentFilter={searchField}
+            onFilterChange={(val) => setSearchField(val)}
+            filterOptions={filterOptions}
+          />
+          <button className="btn search-btn" onClick={handleSearch}>Search</button>
+          <button className="btn btn-sort-reset" onClick={handleResetSort}>⟲ Reset</button>
         </div>
-        <button 
-          className="btn btn-success add-program-btn" 
-          onClick={() => setShowAddPopup(true)}
-        >
+        <button className="btn btn-success add-student-btn" onClick={() => setShowAddPopup(true)}>
           + Add Program
         </button>
       </div>
@@ -226,14 +169,22 @@ function Programs() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Program Code</th>
-              <th>Program Name</th>
-              <th>College Code</th>
+              <th onClick={() => handleHeaderClick("program_code")}>
+                Program Code {sortConfig.key === "program_code" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => handleHeaderClick("program_name")}>
+                Program Name {sortConfig.key === "program_name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => handleHeaderClick("college_code")}>
+                College Code {sortConfig.key === "college_code" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {paginatedPrograms.length > 0 ? (
+            {loading ? (
+              <tr><td colSpan="4" style={{ textAlign: "center" }}>Loading...</td></tr>
+            ) : paginatedPrograms.length > 0 ? (
               paginatedPrograms.map((program) => (
                 <tr key={program.code}>
                   <td>{program.code}</td>
@@ -242,49 +193,30 @@ function Programs() {
                   <td>
                     <ActionButtons
                       item={program}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
+                      onEdit={handleEditProgram}
+                      onDelete={handleDeleteProgram}
                       colleges={colleges}
                     />
                   </td>
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>
-                  {searchQuery ? `No programs found matching "${searchQuery}"` : 'No programs found'}
-                </td>
-              </tr>
+              <tr><td colSpan="4" style={{ textAlign: "center" }}>No programs found</td></tr>
             )}
           </tbody>
         </table>
-        
+
         <div className="pagination">
-          <SortButtons onSort={handleSort} currentSort={sortOrder} />
-          
-          <span>
-            Page {totalPages > 0 ? currentPage : 0} of {totalPages}
-            {searchQuery && programs.length > 0 && ` (${programs.length} result${programs.length !== 1 ? 's' : ''})`}
-          </span>
-          
+          <span className="page-info">Page {totalPages > 0 ? currentPage : 0} of {totalPages}</span>
+          <JumpToPage currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           <div className="pagination-nav">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
-              Prev
-            </button>
-            <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage((p) => p + 1)}>
-              Next
-            </button>
+            <button className="btn" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>Prev</button>
+            <button className="btn" disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage((p) => p + 1)}>Next</button>
           </div>
         </div>
       </div>
 
-      {showAddPopup && (
-        <AddProgram
-          onClose={() => setShowAddPopup(false)}
-          onAdd={handleAddProgram}
-          colleges={colleges}
-        />
-      )}
+      {showAddPopup && <AddProgram onAdd={handleAddProgram} onClose={() => setShowAddPopup(false)} colleges={colleges} />}
     </div>
   );
 }

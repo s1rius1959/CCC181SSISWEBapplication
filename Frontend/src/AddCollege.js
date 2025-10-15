@@ -11,17 +11,17 @@ export default function AddCollege({ onAdd, onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Clear error for this field when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
     // Auto-capitalize college code
     if (name === "code") {
-      setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }));
+      setFormData((prev) => ({ ...prev, [name]: value.toUpperCase() }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -48,13 +48,13 @@ export default function AddCollege({ onAdd, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       await onAdd(formData);
       // Reset form after successful submission
@@ -97,13 +97,18 @@ export default function AddCollege({ onAdd, onClose }) {
               value={formData.code}
               onChange={handleChange}
               placeholder="e.g., CCS"
-              className={`form-input ${errors.code ? 'error' : ''}`}
+              className={`form-input ${errors.code ? "error" : ""}`}
               maxLength="10"
             />
-            {errors.code && (
-              <p className="error-message">{errors.code}</p>
-            )}
-            <small className="input-hint">Letters will be automatically capitalized</small>
+            <div className="note-area">
+              {errors.code ? (
+                <p className="note error-note">{errors.code}</p>
+              ) : (
+                <p className="note hint-note">
+                  Letters will be automatically capitalized
+                </p>
+              )}
+            </div>
           </div>
 
           {/* College Name */}
@@ -117,11 +122,17 @@ export default function AddCollege({ onAdd, onClose }) {
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g., College of Computer Studies"
-              className={`form-input ${errors.name ? 'error' : ''}`}
+              className={`form-input ${errors.name ? "error" : ""}`}
             />
-            {errors.name && (
-              <p className="error-message">{errors.name}</p>
-            )}
+            <div className="note-area">
+              {errors.name ? (
+                <p className="note error-note">{errors.name}</p>
+              ) : (
+                <p className="note hint-note">
+                  Enter the full official college name
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}

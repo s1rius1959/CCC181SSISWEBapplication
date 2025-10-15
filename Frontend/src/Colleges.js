@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { ReactComponent as SearchIcon } from "./assests/search-svgrepo-com.svg";
 import ActionButtons from "./ActionButtons";
 import AddCollege from "./AddCollege";
-import SortButtons from "./SortButtons";
 import Notification from "./Notifications";
+import SearchFilter from "./SearchFilter";
+import JumpToPage from "./JumptoPage";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -12,71 +12,46 @@ function Colleges() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortOrder, setSortOrder] = useState("default");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchTimeout, setSearchTimeout] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState("all");
+
+  const [sortConfig, setSortConfig] = useState({
+    key: "college_code",
+    direction: "asc",
+  });
+
   const itemsPerPage = 10;
 
-  // Show notification helper
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-  };
+  const filterOptions = [
+    { value: "all", label: "All Fields" },
+    { value: "code", label: "College Code" },
+    { value: "name", label: "College Name" },
+  ];
 
+  const showNotification = (message, type = "success") =>
+    setNotification({ message, type });
   const closeNotification = () => setNotification(null);
 
-  // Fetch colleges
   useEffect(() => {
-    fetchColleges();
+    fetchColleges(sortConfig.direction, sortConfig.key);
   }, []);
 
-  // Debounced search
-  useEffect(() => {
-    if (searchTimeout) clearTimeout(searchTimeout);
-    const timeout = setTimeout(() => {
-      fetchColleges(sortOrder, false, searchQuery);
-    }, 300);
-    setSearchTimeout(timeout);
-    return () => clearTimeout(timeout);
-  }, [searchQuery]);
-
-  const fetchColleges = async (sortOrder = "default", showLoading = true, search = "") => {
+  const fetchColleges = async (sort = "asc", sortBy = "college_code") => {
     try {
-      if (showLoading) setLoading(true);
-
-      let url = `${API_URL}/colleges`;
-      const params = new URLSearchParams();
-
-      if (sortOrder !== "default") params.append("sort", sortOrder);
-      if (search.trim()) params.append("search", search.trim());
-
-      const queryString = params.toString();
-      if (queryString) url += `?${queryString}`;
-
+      setLoading(true);
+      let url = `${API_URL}/colleges?sort=${sort}&sort_by=${sortBy}`;
+      if (searchQuery.trim()) {
+        url += `&search=${encodeURIComponent(searchQuery.trim())}&search_field=${searchField}`;
+      }
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch colleges");
       const data = await response.json();
       setColleges(data);
-      setError(null);
-      setCurrentPage(1);
     } catch (err) {
-      setError(err.message);
       console.error("Error fetching colleges:", err);
     } finally {
-      if (showLoading) setLoading(false);
-    }
-  };
-
-  const fetchSingleCollege = async (collegeCode) => {
-    try {
-      const response = await fetch(`${API_URL}/colleges/${collegeCode}`);
-      if (!response.ok) throw new Error("Failed to fetch college");
-      const data = await response.json();
-      return data;
-    } catch (err) {
-      console.error("Error fetching single college:", err);
-      throw err;
+      setLoading(false);
     }
   };
 
@@ -88,112 +63,94 @@ function Colleges() {
         body: JSON.stringify(newCollege),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to add college");
-      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to add college");
 
-      await fetchColleges(sortOrder, false, searchQuery);
+      await fetchColleges(sortConfig.direction, sortConfig.key);
       setShowAddPopup(false);
-      showNotification("College Added Successfully!", "success");
+      showNotification("College added successfully!", "success");
     } catch (err) {
       showNotification(err.message, "error");
-      console.error("Error adding college:", err);
     }
   };
 
-  // ✅ FIXED: handleEdit now takes both editedCollege and oldCode
-  const handleEdit = async (editedCollege, oldCode) => {
+  const handleEditCollege = async (editedCollege, originalCode) => {
     try {
-      const response = await fetch(`${API_URL}/colleges/${oldCode}`, {
+      const response = await fetch(`${API_URL}/colleges/${originalCode}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editedCollege),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update college");
-      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to edit college");
 
-      await fetchColleges(sortOrder, false, searchQuery);
-      showNotification("College Updated Successfully!", "success");
+      await fetchColleges(sortConfig.direction, sortConfig.key);
+      showNotification("College updated successfully!", "success");
     } catch (err) {
       showNotification(err.message, "error");
-      console.error("Error updating college:", err);
     }
   };
 
-  const handleDelete = async (college) => {
+  const handleDeleteCollege = async (college) => {
     try {
       const response = await fetch(`${API_URL}/colleges/${college.code}`, {
         method: "DELETE",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete college");
-      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to delete college");
 
-      await fetchColleges(sortOrder, false, searchQuery);
-      showNotification("College Deleted Successfully!", "success");
+      await fetchColleges(sortConfig.direction, sortConfig.key);
+      showNotification("College deleted successfully!", "success");
     } catch (err) {
       showNotification(err.message, "error");
-      console.error("Error deleting college:", err);
     }
   };
 
-  const handleSort = (order) => {
-    setSortOrder(order);
-    fetchColleges(order, false, searchQuery);
+  const handleHeaderClick = (columnKey) => {
+    let direction = "asc";
+    if (sortConfig.key === columnKey && sortConfig.direction === "asc") direction = "desc";
+    setSortConfig({ key: columnKey, direction });
+    fetchColleges(direction, columnKey);
   };
 
-  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+  const handleResetSort = () => {
+    const defaultSort = { key: "college_code", direction: "asc" };
+    setSortConfig(defaultSort);
+    setSearchQuery("");
+    setSearchField("all");
+    fetchColleges(defaultSort.direction, defaultSort.key);
+  };
+
+  const handleSearch = () => fetchColleges(sortConfig.direction, sortConfig.key);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedColleges = colleges.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(colleges.length / itemsPerPage);
 
-  if (loading) {
-    return (
-      <div className="content">
-        <h2>Loading colleges...</h2>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="content">
-        <h2>Error: {error}</h2>
-        <button onClick={() => fetchColleges()}>Retry</button>
-      </div>
-    );
-  }
-
   return (
     <div className="content">
-      {notification && (
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          onClose={closeNotification}
-        />
-      )}
-
+      {notification && <Notification {...notification} onClose={closeNotification} />}
       <div className="content-header">
         <h2>Colleges</h2>
-        <div className="search-container">
+        <div className="search-area">
           <input
             type="text"
-            className="search-bar"
             placeholder="Search colleges..."
+            className="search-input"
             value={searchQuery}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <SearchIcon className="search-icon" />
+          <SearchFilter
+            currentFilter={searchField}
+            onFilterChange={(val) => setSearchField(val)}
+            filterOptions={filterOptions}
+          />
+          <button className="btn search-btn" onClick={handleSearch}>Search</button>
+          <button className="btn btn-sort-reset" onClick={handleResetSort}>⟲ Reset</button>
         </div>
-        <button className="btn btn-success add-college-btn" onClick={() => setShowAddPopup(true)}>
+        <button className="btn btn-success add-student-btn" onClick={() => setShowAddPopup(true)}>
           + Add College
         </button>
       </div>
@@ -202,67 +159,43 @@ function Colleges() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>College Code</th>
-              <th>College Name</th>
+              <th onClick={() => handleHeaderClick("college_code")}>
+                College Code {sortConfig.key === "college_code" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
+              <th onClick={() => handleHeaderClick("college_name")}>
+                College Name {sortConfig.key === "college_name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
+              </th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {paginatedColleges.length > 0 ? (
+            {loading ? (
+              <tr><td colSpan="3" style={{ textAlign: "center" }}>Loading...</td></tr>
+            ) : paginatedColleges.length > 0 ? (
               paginatedColleges.map((college) => (
                 <tr key={college.code}>
                   <td>{college.code}</td>
                   <td>{college.name}</td>
-                  <td>
-                    {/* ✅ Send old code to onEdit */}
-                    <ActionButtons
-                      item={college}
-                      onEdit={(editedCollege) => handleEdit(editedCollege, college.code)}
-                      onDelete={handleDelete}
-                      onFetchSingle={fetchSingleCollege}
-                    />
-                  </td>
+                  <td><ActionButtons item={college} onEdit={handleEditCollege} onDelete={handleDeleteCollege} /></td>
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>
-                  {searchQuery
-                    ? `No colleges found matching "${searchQuery}"`
-                    : "No colleges found"}
-                </td>
-              </tr>
+              <tr><td colSpan="3" style={{ textAlign: "center" }}>No colleges found</td></tr>
             )}
           </tbody>
         </table>
 
         <div className="pagination">
-          <SortButtons onSort={handleSort} currentSort={sortOrder} />
-
-          <span>
-            Page {totalPages > 0 ? currentPage : 0} of {totalPages}
-            {searchQuery &&
-              colleges.length > 0 &&
-              ` (${colleges.length} result${colleges.length !== 1 ? "s" : ""})`}
-          </span>
-
+          <span className="page-info">Page {totalPages > 0 ? currentPage : 0} of {totalPages}</span>
+          <JumpToPage currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           <div className="pagination-nav">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
-              Prev
-            </button>
-            <button
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => setCurrentPage((p) => p + 1)}
-            >
-              Next
-            </button>
+            <button className="btn" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>Prev</button>
+            <button className="btn" disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage((p) => p + 1)}>Next</button>
           </div>
         </div>
       </div>
 
-      {showAddPopup && (
-        <AddCollege onClose={() => setShowAddPopup(false)} onAdd={handleAddCollege} />
-      )}
+      {showAddPopup && <AddCollege onAdd={handleAddCollege} onClose={() => setShowAddPopup(false)} />}
     </div>
   );
 }
