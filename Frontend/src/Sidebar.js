@@ -7,28 +7,29 @@ function Sidebar() {
       <div className="sidebar-logo">Class.io</div>
       <ul className="sidebar-menu">
         <li>
-          <NavLink 
-            to="/students" 
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
+          <NavLink to="/students" className={({ isActive }) => (isActive ? "active" : "")}>
             Students
           </NavLink>
         </li>
         <li>
-          <NavLink 
-            to="/colleges" 
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
+          <NavLink to="/colleges" className={({ isActive }) => (isActive ? "active" : "")}>
             Colleges
           </NavLink>
         </li>
         <li>
-          <NavLink 
-            to="/programs" 
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
+          <NavLink to="/programs" className={({ isActive }) => (isActive ? "active" : "")}>
             Programs
           </NavLink>
+        </li>
+        <li
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+          }}
+          style={{ cursor: "pointer", color: "white", marginTop: "20px" }}
+        >
+          Logout
         </li>
       </ul>
     </div>

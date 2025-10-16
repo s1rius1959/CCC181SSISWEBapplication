@@ -4,22 +4,36 @@ import Sidebar from "./Sidebar";
 import Students from "./Students";
 import Colleges from "./Colleges";
 import Programs from "./Programs";
+import Login from "./Login";
+import Signup from "./Signup";
+import ProtectedRoute from "./ProtectedRoutes";
 import "./App.css";
 
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <Sidebar />
-        <div className="main-content">
-          <Routes>
-            <Route path="/" element={<Navigate to="/students" />} />
-            <Route path="/students" element={<Students />} />
-            <Route path="/colleges" element={<Colleges />} />
-            <Route path="/programs" element={<Programs />} />
-          </Routes>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <div className="app-container">
+                <Sidebar />
+                <div className="main-content">
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/students" />} />
+                    <Route path="/students" element={<Students />} />
+                    <Route path="/colleges" element={<Colleges />} />
+                    <Route path="/programs" element={<Programs />} />
+                  </Routes>
+                </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </Router>
   );
 }
