@@ -26,18 +26,23 @@ DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 # ------------------------------
 app = Flask(__name__)
 
-# ✅ Proper CORS (supports OPTIONS + credentials)
-CORS(
-    app,
-    resources={r"/api/*": {"origins": "http://localhost:3000"}},
-    supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-)
+# ✅ ✅ PROPER CORS FIX — all settings INSIDE resources block
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "http://localhost:3000",
+        "supports_credentials": True,
+        "allow_headers": ["Content-Type", "Authorization"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+})
 
-# ✅ JWT Configuration
-app.config["JWT_SECRET_KEY"] = "supersecretjwtkey"
+# ------------------------------
+# JWT Configuration
+# ------------------------------
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+
 jwt = JWTManager(app)
 
 # ------------------------------
@@ -105,7 +110,6 @@ def index():
         t = conn.execute(text("SELECT NOW()")).scalar()
         return f"<h3>Connection OK</h3><p>{t}</p>"
 
-
 # ------------------------------
 # Import & Register Blueprints
 # ------------------------------
@@ -123,7 +127,6 @@ app.register_blueprint(student_bp)
 app.register_blueprint(college_bp)
 app.register_blueprint(program_bp)
 app.register_blueprint(auth_bp)
-
 
 # ------------------------------
 # Run server
