@@ -17,11 +17,23 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", form);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        form,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // Include cookies in the request
+        }
+      );
+
       localStorage.setItem("token", res.data.access_token);
       localStorage.setItem("user", res.data.user);
       navigate("/students");
+      
     } catch (err) {
       setError(err.response?.data?.error || "Login failed");
     }
@@ -32,6 +44,7 @@ function Login() {
       <div className="auth-card">
         <h2>Welcome Back</h2>
         <p>Login to your account</p>
+
         <form onSubmit={handleSubmit}>
           <input
             type="email"
@@ -41,6 +54,7 @@ function Login() {
             onChange={handleChange}
             required
           />
+
           <div className="password-wrapper">
             <input
               type={showPassword ? "text" : "password"}
@@ -58,9 +72,12 @@ function Login() {
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </span>
           </div>
+
           {error && <div className="error-message">{error}</div>}
+
           <button type="submit">Login</button>
         </form>
+
         <p className="switch-text">
           Don’t have an account? <Link to="/signup">Sign up</Link>
         </p>

@@ -5,7 +5,12 @@ import { Eye, EyeOff } from "lucide-react";
 import "./Auth.css";
 
 function Signup() {
-  const [form, setForm] = useState({ email: "", password: "", confirm_password: "" });
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    confirm_password: "",
+  });
+  
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,10 +25,22 @@ function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signup", form);
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/signup",
+        form,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,   // ✅ REQUIRED for CORS + OPTIONS passing
+        }
+      );
+
       setSuccess(res.data.message || "Signup successful! Please login.");
       setTimeout(() => navigate("/login"), 1500);
+      
     } catch (err) {
       setError(err.response?.data?.error || "Signup failed");
     }
@@ -34,7 +51,9 @@ function Signup() {
       <div className="auth-card">
         <h2>Create Account</h2>
         <p>Join us today</p>
+
         <form onSubmit={handleSubmit}>
+          
           <input
             type="email"
             name="email"

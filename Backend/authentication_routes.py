@@ -1,29 +1,24 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import text
-from flask_jwt_extended import (
-    JWTManager, create_access_token, jwt_required, get_jwt_identity
-)
-from datetime import timedelta
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
-# ---------- Initialize Auth Routes ----------
-def init_auth_routes(app, engine):
-    app.config["JWT_SECRET_KEY"] = "supersecretjwtkey"   # change this to your own random key
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)  # token expires in 1 hour
-
-    jwt = JWTManager(app)
+def init_auth_routes(engine):
 
     # ---------- SIGNUP ----------
-    @auth_bp.route("/signup", methods=["POST"])
+    @auth_bp.route("/signup", methods=["POST", "OPTIONS"])
     def signup():
+        # ✅ Preflight CORS
+        if request.method == "OPTIONS":
+            return jsonify({"status": "ok"}), 200
+
         data = request.get_json()
         email = data.get("email")
         password = data.get("password")
         confirm_password = data.get("confirm_password")
 
-        # Simple validation
         if not email or not password or not confirm_password:
             return jsonify({"error": "All fields are required"}), 400
 
@@ -36,7 +31,11 @@ def init_auth_routes(app, engine):
         password_hash = generate_password_hash(password)
 
         with engine.connect() as conn:
-            existing = conn.execute(text("SELECT * FROM users WHERE email=:email"), {"email": email}).fetchone()
+            existing = conn.execute(
+                text("SELECT * FROM users WHERE email=:email"),
+                {"email": email}
+            ).fetchone()
+
             if existing:
                 return jsonify({"error": "Email already registered"}), 400
 
@@ -50,8 +49,12 @@ def init_auth_routes(app, engine):
 
 
     # ---------- LOGIN ----------
-    @auth_bp.route("/login", methods=["POST"])
+    @auth_bp.route("/login", methods=["POST", "OPTIONS"])
     def login():
+        # ✅ Preflight CORS
+        if request.method == "OPTIONS":
+            return jsonify({"status": "ok"}), 200
+
         data = request.get_json()
         email = data.get("email")
         password = data.get("password")
@@ -60,7 +63,11 @@ def init_auth_routes(app, engine):
             return jsonify({"error": "Email and password are required"}), 400
 
         with engine.connect() as conn:
-            user = conn.execute(text("SELECT * FROM users WHERE email=:email"), {"email": email}).fetchone()
+            user = conn.execute(
+                text("SELECT * FROM users WHERE email=:email"),
+                {"email": email}
+            ).fetchone()
+
             if not user or not check_password_hash(user.password_hash, password):
                 return jsonify({"error": "Invalid email or password"}), 401
 
@@ -68,11 +75,10 @@ def init_auth_routes(app, engine):
         return jsonify({"access_token": token, "user": email}), 200
 
 
-    # ---------- VERIFY TOKEN ----------
+    # ---------- VERIFY ----------
     @auth_bp.route("/verify", methods=["GET"])
     @jwt_required()
     def verify():
-        current_user = get_jwt_identity()
-        return jsonify({"user": current_user}), 200
+        return jsonify({"user": get_jwt_identity()}), 200
 
     return auth_bp
