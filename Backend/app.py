@@ -26,7 +26,7 @@ DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 # ------------------------------
 app = Flask(__name__)
 
-# ✅ ✅ PROPER CORS FIX — all settings INSIDE resources block
+# PROPER CORS FIX – all settings INSIDE resources block
 CORS(app, resources={
     r"/api/*": {
         "origins": "http://localhost:3000",
@@ -35,6 +35,15 @@ CORS(app, resources={
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 })
+
+# ADD THIS - CORS Headers Handler
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 # ------------------------------
 # JWT Configuration
