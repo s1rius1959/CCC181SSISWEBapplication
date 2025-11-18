@@ -41,6 +41,7 @@ function Students() {
   useEffect(() => {
     fetchStudents(sortConfig.direction, sortConfig.key);
     fetchPrograms();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchStudents = async (sort = "asc", sortBy = "id") => {

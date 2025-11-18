@@ -8,9 +8,7 @@ from flask_jwt_extended import JWTManager
 from datetime import timedelta
 import os
 
-# ------------------------------
-# Load environment variables
-# ------------------------------
+
 load_dotenv()
 
 USER = os.getenv("user")
@@ -21,12 +19,10 @@ DBNAME = os.getenv("dbname")
 
 DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 
-# ------------------------------
-# Flask App
-# ------------------------------
+
 app = Flask(__name__)
 
-# ✅ Proper CORS setup
+
 CORS(
     app,
     supports_credentials=True,
@@ -35,18 +31,16 @@ CORS(
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
-# ------------------------------
+
 # JWT Configuration
-# ------------------------------
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 jwt = JWTManager(app)
 
-# ------------------------------
+
 # Database Setup Function
-# ------------------------------
 def setup_database():
     if not database_exists(DATABASE_URL):
         print(f"Database '{DBNAME}' does not exist. Creating...")
@@ -94,23 +88,20 @@ def setup_database():
 
     return engine
 
-# ------------------------------
-# Initialize DB
-# ------------------------------
+
+# Initialize D
 engine = setup_database()
 
-# ------------------------------
+
 # Test Route
-# ------------------------------
 @app.route("/")
 def index():
     with engine.connect() as conn:
         t = conn.execute(text("SELECT NOW()")).scalar()
         return f"<h3>Connection OK</h3><p>{t}</p>"
 
-# ------------------------------
+
 # Import & Register Blueprints
-# ------------------------------
 from student_routes import init_student_routes
 from college_routes import init_college_routes
 from program_routes import init_program_routes

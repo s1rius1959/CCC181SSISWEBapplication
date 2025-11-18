@@ -30,22 +30,26 @@ def init_auth_routes(engine):
 
         password_hash = generate_password_hash(password)
 
-        with engine.connect() as conn:
-            existing = conn.execute(
-                text("SELECT * FROM users WHERE email=:email"),
-                {"email": email}
-            ).fetchone()
+        try:
+            with engine.connect() as conn:
+                existing = conn.execute(
+                    text("SELECT email FROM users WHERE email=:email"),
+                    {"email": email}
+                ).fetchone()
 
-            if existing:
-                return jsonify({"error": "Email already registered"}), 400
+                if existing:
+                    return jsonify({"error": "Email already registered"}), 400
 
-            conn.execute(
-                text("INSERT INTO users (email, password_hash) VALUES (:email, :password_hash)"),
-                {"email": email, "password_hash": password_hash}
-            )
-            conn.commit()
+                conn.execute(
+                    text("INSERT INTO users (email, password_hash) VALUES (:email, :password_hash)"),
+                    {"email": email, "password_hash": password_hash}
+                )
+                conn.commit()
 
-        return jsonify({"message": "Signup successful"}), 201
+            return jsonify({"message": "Signup successful"}), 201
+        except Exception as e:
+            print(f"❌ Signup error: {e}")
+            return jsonify({"error": str(e)}), 500
 
 
     # ---------- LOGIN ----------
@@ -62,17 +66,25 @@ def init_auth_routes(engine):
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
 
-        with engine.connect() as conn:
-            user = conn.execute(
-                text("SELECT * FROM users WHERE email=:email"),
-                {"email": email}
-            ).fetchone()
+        try:
+            with engine.connect() as conn:
+                user = conn.execute(
+                    text("SELECT id, email, password_hash FROM users WHERE email=:email"),
+                    {"email": email}
+                ).fetchone()
 
-            if not user or not check_password_hash(user.password_hash, password):
-                return jsonify({"error": "Invalid email or password"}), 401
+                if not user:
+                    return jsonify({"error": "Invalid email or password"}), 401
 
-        token = create_access_token(identity=email)
-        return jsonify({"access_token": token, "user": email}), 200
+                # user is a tuple: (id, email, password_hash)
+                if not check_password_hash(user[2], password):
+                    return jsonify({"error": "Invalid email or password"}), 401
+
+            token = create_access_token(identity=email)
+            return jsonify({"access_token": token, "user": email}), 200
+        except Exception as e:
+            print(f"❌ Login error: {e}")
+            return jsonify({"error": str(e)}), 500
 
 
     # ---------- VERIFY ----------

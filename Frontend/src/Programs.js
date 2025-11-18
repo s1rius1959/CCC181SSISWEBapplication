@@ -38,6 +38,7 @@ function Programs() {
   useEffect(() => {
     fetchPrograms(sortConfig.direction, sortConfig.key);
     fetchColleges();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPrograms = async (sort = "asc", sortBy = "program_code") => {

@@ -35,6 +35,7 @@ function Colleges() {
 
   useEffect(() => {
     fetchColleges(sortConfig.direction, sortConfig.key);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchColleges = async (sort = "asc", sortBy = "college_code") => {
