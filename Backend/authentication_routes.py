@@ -10,7 +10,7 @@ def init_auth_routes(engine):
     # ---------- SIGNUP ----------
     @auth_bp.route("/signup", methods=["POST", "OPTIONS"])
     def signup():
-        # ✅ Preflight CORS
+        # Preflight CORS
         if request.method == "OPTIONS":
             return jsonify({"status": "ok"}), 200
 
@@ -55,7 +55,7 @@ def init_auth_routes(engine):
     # ---------- LOGIN ----------
     @auth_bp.route("/login", methods=["POST", "OPTIONS"])
     def login():
-        # ✅ Preflight CORS
+        # Preflight CORS
         if request.method == "OPTIONS":
             return jsonify({"status": "ok"}), 200
 
