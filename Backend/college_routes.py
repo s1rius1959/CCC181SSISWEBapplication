@@ -61,7 +61,7 @@ def init_college_routes(engine):
                 return jsonify(colleges), 200
 
         except Exception as e:
-            print(f"❌ Error in get_colleges: {e}")
+            print(f"Error in get_colleges: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== GET SINGLE COLLEGE ====================
@@ -88,7 +88,7 @@ def init_college_routes(engine):
                 }), 200
 
         except Exception as e:
-            print(f"❌ Error in get_college: {e}")
+            print(f"Error in get_college: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== ADD COLLEGE ====================
@@ -137,7 +137,7 @@ def init_college_routes(engine):
         except IntegrityError:
             return jsonify({"error": "Database integrity error"}), 400
         except Exception as e:
-            print(f"❌ Error in add_college: {e}")
+            print(f"Error in add_college: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== UPDATE COLLEGE ====================
@@ -188,7 +188,7 @@ def init_college_routes(engine):
                 return jsonify({"message": "College updated successfully"}), 200
 
         except Exception as e:
-            print(f"❌ Error in update_college: {e}")
+            print(f"Error in update_college: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== DELETE COLLEGE ====================
@@ -239,7 +239,7 @@ def init_college_routes(engine):
                 }), 200
 
         except Exception as e:
-            print(f"❌ Error in delete_college: {e}")
+            print(f"Error in delete_college: {e}")
             return jsonify({"error": str(e)}), 500
 
     return college_bp

@@ -95,7 +95,7 @@ def init_student_routes(engine):
                 ]
                 return jsonify(students), 200
         except Exception as e:
-            print(f"❌ Error in get_students: {e}")
+            print(f"Error in get_students: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== GET SINGLE STUDENT ====================
@@ -124,7 +124,7 @@ def init_student_routes(engine):
                     "yearLevel": result[5]
                 }), 200
         except Exception as e:
-            print(f"❌ Error in get_student: {e}")
+            print(f"Error in get_student: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== ADD STUDENT ====================
@@ -182,7 +182,7 @@ def init_student_routes(engine):
                 connection.commit()
                 return jsonify({"message": "Student added successfully"}), 201
         except Exception as e:
-            print(f"❌ Error in add_student: {e}")
+            print(f"Error in add_student: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== UPDATE STUDENT ====================
@@ -233,7 +233,7 @@ def init_student_routes(engine):
                 connection.commit()
                 return jsonify({"message": "Student updated successfully"}), 200
         except Exception as e:
-            print(f"❌ Error in update_student: {e}")
+            print(f"Error in update_student: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== DELETE STUDENT ====================
@@ -256,7 +256,7 @@ def init_student_routes(engine):
                 connection.commit()
                 return jsonify({"message": "Student deleted successfully"}), 200
         except Exception as e:
-            print(f"❌ Error in delete_student: {e}")
+            print(f"Error in delete_student: {e}")
             return jsonify({"error": str(e)}), 500
 
     return student_bp

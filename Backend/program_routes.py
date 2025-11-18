@@ -73,7 +73,7 @@ def init_program_routes(engine):
                 return jsonify(programs), 200
 
         except Exception as e:
-            print(f"❌ Error in get_programs: {e}")
+            print(f"Error in get_programs: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== GET SINGLE PROGRAM ====================
@@ -99,7 +99,7 @@ def init_program_routes(engine):
                     "collegeCode": result[2],
                 }), 200
         except Exception as e:
-            print(f"❌ Error in get_program: {e}")
+            print(f"Error in get_program: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== ADD PROGRAM ====================
@@ -146,7 +146,7 @@ def init_program_routes(engine):
                 connection.commit()
                 return jsonify({"message": "Program added successfully"}), 201
         except Exception as e:
-            print(f"❌ Error in add_program: {e}")
+            print(f"Error in add_program: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== UPDATE PROGRAM ====================
@@ -205,7 +205,7 @@ def init_program_routes(engine):
                 connection.commit()
                 return jsonify({"message": "Program updated successfully"}), 200
         except Exception as e:
-            print(f"❌ Error in update_program: {e}")
+            print(f"Error in update_program: {e}")
             return jsonify({"error": str(e)}), 500
 
     # ==================== DELETE PROGRAM ====================
@@ -238,7 +238,7 @@ def init_program_routes(engine):
 
                 return jsonify({"message": "Program deleted successfully"}), 200
         except Exception as e:
-            print(f"❌ Error in delete_program: {e}")
+            print(f"Error in delete_program: {e}")
             return jsonify({"error": str(e)}), 500
 
     return program_bp

@@ -48,7 +48,7 @@ def init_auth_routes(engine):
 
             return jsonify({"message": "Signup successful"}), 201
         except Exception as e:
-            print(f"❌ Signup error: {e}")
+            print(f"Signup error: {e}")
             return jsonify({"error": str(e)}), 500
 
 
@@ -83,7 +83,7 @@ def init_auth_routes(engine):
             token = create_access_token(identity=email)
             return jsonify({"access_token": token, "user": email}), 200
         except Exception as e:
-            print(f"❌ Login error: {e}")
+            print(f"Login error: {e}")
             return jsonify({"error": str(e)}), 500
 
 
