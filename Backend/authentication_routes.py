@@ -93,4 +93,53 @@ def init_auth_routes(engine):
     def verify():
         return jsonify({"user": get_jwt_identity()}), 200
 
+
+    # ---------- UPDATE PROFILE IMAGE ----------
+    @auth_bp.route("/profile-image", methods=["PUT"])
+    @jwt_required()
+    def update_profile_image():
+        try:
+            data = request.get_json()
+            email = data.get("email")
+            profile_image_url = data.get("profile_image_url")
+
+            if not email or not profile_image_url:
+                return jsonify({"error": "Email and image URL are required"}), 400
+
+            with engine.connect() as conn:
+                conn.execute(
+                    text("UPDATE users SET profile_image_url = :url WHERE email = :email"),
+                    {"url": profile_image_url, "email": email}
+                )
+                conn.commit()
+
+            return jsonify({"message": "Profile image updated successfully"}), 200
+        except Exception as e:
+            print(f"Profile image update error: {e}")
+            return jsonify({"error": str(e)}), 500
+
+
+    # ---------- GET USER PROFILE ----------
+    @auth_bp.route("/profile", methods=["GET"])
+    @jwt_required()
+    def get_profile():
+        try:
+            email = get_jwt_identity()
+            with engine.connect() as conn:
+                user = conn.execute(
+                    text("SELECT email, profile_image_url FROM users WHERE email = :email"),
+                    {"email": email}
+                ).fetchone()
+
+                if not user:
+                    return jsonify({"error": "User not found"}), 404
+
+                return jsonify({
+                    "email": user[0],
+                    "profile_image_url": user[1]
+                }), 200
+        except Exception as e:
+            print(f"Get profile error: {e}")
+            return jsonify({"error": str(e)}), 500
+
     return auth_bp

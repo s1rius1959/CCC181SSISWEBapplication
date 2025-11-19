@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import Students from "./Students";
 import Colleges from "./Colleges";
 import Programs from "./Programs";
+import Profile from "./Profile";
 import Login from "./Login";
 import Signup from "./Signup";
 import ProtectedRoute from "./ProtectedRoutes";
@@ -27,6 +28,7 @@ function App() {
                     <Route path="/students" element={<Students />} />
                     <Route path="/colleges" element={<Colleges />} />
                     <Route path="/programs" element={<Programs />} />
+                    <Route path="/profile" element={<Profile />} />
                   </Routes>
                 </div>
               </div>

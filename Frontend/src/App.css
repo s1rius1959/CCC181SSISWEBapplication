@@ -39,6 +39,72 @@ body {
   letter-spacing: 1px;
 }
 
+/* Sidebar Profile Bottom Section */
+.sidebar-profile-bottom {
+  padding: 20px 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.profile-icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.profile-icon-link:hover {
+  transform: scale(1.1);
+}
+
+.sidebar-profile-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.sidebar-profile-icon:hover {
+  transform: scale(1.1);
+}
+
+.sidebar-profile-icon-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-profile-icon-placeholder:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+.logout-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.logout-icon:hover {
+  transform: scale(1.1);
+}
+
 .sidebar-menu {
   list-style: none;
   padding: 20px 0;
@@ -126,6 +192,44 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Profile Page Styles */
+.profile-container {
+  background: white;
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  max-width: 800px;
+}
+
+.profile-info {
+  margin-bottom: 40px;
+}
+
+.profile-info h3 {
+  color: #2d3748;
+  font-size: 20px;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.profile-info p {
+  color: #4a5568;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.profile-image-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 30px;
+}
+
+.profile-image-section h3 {
+  color: #2d3748;
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
 /* Search Container (Legacy) */
