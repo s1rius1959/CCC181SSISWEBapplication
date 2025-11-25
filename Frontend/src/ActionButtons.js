@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import StudentImageUpload from "./StudentImageUpload";
 
 export default function ActionButtons({
   item,
@@ -97,55 +98,94 @@ export default function ActionButtons({
 
       {/* ===== Edit Popup ===== */}
       {showEditPopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <h3>
-              Edit {isStudent ? "Student" : isCollege ? "College" : "Program"}
-            </h3>
+        <div className="add-student-overlay">
+          <div className="add-student-modal">
+            <div className="add-student-header">
+              <h3>
+                Edit {isStudent ? "Student" : isCollege ? "College" : "Program"}
+              </h3>
+            </div>
 
-            <form onSubmit={handleEditSubmit}>
+            <form onSubmit={handleEditSubmit} className="add-student-form">
               {/* STUDENT FIELDS */}
               {isStudent && (
                 <>
-                  <label>
-                    Student ID:
+                  {/* Profile Picture */}
+                  <div className="form-group">
+                    <label className="form-label">Profile Picture</label>
+                    <StudentImageUpload 
+                      studentId={editedItem.id}
+                      currentImageUrl={editedItem.profileImage}
+                      onUploadSuccess={(url) => setEditedItem(prev => ({ ...prev, profileImage: url }))}
+                    />
+                  </div>
+
+                  {/* Student ID */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Student ID <span className="required">*</span>
+                    </label>
                     <input
+                      type="text"
                       name="id"
                       value={editedItem.id || ""}
                       onChange={handleChange}
+                      className={`form-input ${errors.id ? "error" : ""}`}
                       required
                     />
-                    {errors.id && <p className="error-text">{errors.id}</p>}
-                  </label>
+                    <div className="note-area">
+                      {errors.id && <p className="note error-note">{errors.id}</p>}
+                    </div>
+                  </div>
 
-                  <label>
-                    First Name:
+                  {/* First Name */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      First Name <span className="required">*</span>
+                    </label>
                     <input
+                      type="text"
                       name="firstName"
                       value={editedItem.firstName || ""}
                       onChange={handleChange}
+                      placeholder="Enter first name"
+                      className={`form-input ${errors.firstName ? "error" : ""}`}
                       required
                     />
-                    {errors.firstName && <p className="error-text">{errors.firstName}</p>}
-                  </label>
+                    <div className="note-area">
+                      {errors.firstName && <p className="note error-note">{errors.firstName}</p>}
+                    </div>
+                  </div>
 
-                  <label>
-                    Last Name:
+                  {/* Last Name */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Last Name <span className="required">*</span>
+                    </label>
                     <input
+                      type="text"
                       name="lastName"
                       value={editedItem.lastName || ""}
                       onChange={handleChange}
+                      placeholder="Enter last name"
+                      className={`form-input ${errors.lastName ? "error" : ""}`}
                       required
                     />
-                    {errors.lastName && <p className="error-text">{errors.lastName}</p>}
-                  </label>
+                    <div className="note-area">
+                      {errors.lastName && <p className="note error-note">{errors.lastName}</p>}
+                    </div>
+                  </div>
 
-                  <label>
-                    Gender:
+                  {/* Gender */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Gender <span className="required">*</span>
+                    </label>
                     <select
                       name="gender"
                       value={editedItem.gender || ""}
                       onChange={handleChange}
+                      className={`form-input ${errors.gender ? "error" : ""}`}
                       required
                     >
                       <option value="">-- Select Gender --</option>
@@ -153,15 +193,21 @@ export default function ActionButtons({
                       <option value="F">Female</option>
                       <option value="Others">Others</option>
                     </select>
-                    {errors.gender && <p className="error-text">{errors.gender}</p>}
-                  </label>
+                    <div className="note-area">
+                      {errors.gender && <p className="note error-note">{errors.gender}</p>}
+                    </div>
+                  </div>
 
-                  <label>
-                    Program:
+                  {/* Program */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Program <span className="required">*</span>
+                    </label>
                     <select
                       name="course"
                       value={editedItem.course || ""}
                       onChange={handleChange}
+                      className={`form-input ${errors.course ? "error" : ""}`}
                       required
                     >
                       <option value="">-- Select Program --</option>
@@ -171,15 +217,21 @@ export default function ActionButtons({
                         </option>
                       ))}
                     </select>
-                    {errors.course && <p className="error-text">{errors.course}</p>}
-                  </label>
+                    <div className="note-area">
+                      {errors.course && <p className="note error-note">{errors.course}</p>}
+                    </div>
+                  </div>
 
-                  <label>
-                    Year Level:
+                  {/* Year Level */}
+                  <div className="form-group">
+                    <label className="form-label">
+                      Year Level <span className="required">*</span>
+                    </label>
                     <select
                       name="yearLevel"
                       value={editedItem.yearLevel || ""}
                       onChange={handleChange}
+                      className={`form-input ${errors.yearLevel ? "error" : ""}`}
                       required
                     >
                       <option value="">-- Select Year Level --</option>
@@ -189,8 +241,10 @@ export default function ActionButtons({
                         </option>
                       ))}
                     </select>
-                    {errors.yearLevel && <p className="error-text">{errors.yearLevel}</p>}
-                  </label>
+                    <div className="note-area">
+                      {errors.yearLevel && <p className="note error-note">{errors.yearLevel}</p>}
+                    </div>
+                  </div>
                 </>
               )}
 
@@ -266,12 +320,17 @@ export default function ActionButtons({
                 </>
               )}
 
-              <div className="popup-actions">
-                <button type="button" className="btn" onClick={() => setShowEditPopup(false)}>
-                  Cancel
+              {/* Action Buttons */}
+              <div className="form-actions">
+                <button type="submit" className="btn btn-submit">
+                  <span>✓</span> Save Changes
                 </button>
-                <button type="submit" className="btn btn-success">
-                  Save Changes
+                <button
+                  type="button"
+                  onClick={() => setShowEditPopup(false)}
+                  className="btn btn-cancel"
+                >
+                  Cancel
                 </button>
               </div>
             </form>

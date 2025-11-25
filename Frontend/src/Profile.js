@@ -3,6 +3,8 @@ import ProfileUpload from "./ProfileUpload";
 
 function Profile() {
   const [userEmail, setUserEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +27,8 @@ function Profile() {
       if (response.ok) {
         const data = await response.json();
         setProfileImageUrl(data.profile_image_url);
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -52,6 +56,7 @@ function Profile() {
           <>
             <div className="profile-info">
               <h3>Account Information</h3>
+              <p><strong>Name:</strong> {firstName} {lastName}</p>
               <p><strong>Email:</strong> {userEmail}</p>
             </div>
 

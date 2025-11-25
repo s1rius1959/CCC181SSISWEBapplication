@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import StudentImageUpload from "./StudentImageUpload";
 
 export default function AddStudent({ programs, onAdd, onClose }) {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ export default function AddStudent({ programs, onAdd, onClose }) {
     gender: "",
     course: "",
     yearLevel: "",
+    profileImage: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -102,6 +104,7 @@ export default function AddStudent({ programs, onAdd, onClose }) {
         gender: "",
         course: "",
         yearLevel: "",
+        profileImage: null,
       });
       setErrors({});
     } catch (error) {
@@ -119,6 +122,7 @@ export default function AddStudent({ programs, onAdd, onClose }) {
       gender: "",
       course: "",
       yearLevel: "",
+      profileImage: null,
     });
     setErrors({});
   };
@@ -131,6 +135,16 @@ export default function AddStudent({ programs, onAdd, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className="add-student-form">
+          {/* Profile Image Upload */}
+          <div className="form-group">
+            <label className="form-label">Profile Picture</label>
+            <StudentImageUpload 
+              studentId={formData.id || "temp"}
+              currentImageUrl={formData.profileImage}
+              onUploadSuccess={(url) => setFormData(prev => ({ ...prev, profileImage: url }))}
+            />
+          </div>
+
           {/* Student ID */}
           <div className="form-group">
             <label className="form-label">

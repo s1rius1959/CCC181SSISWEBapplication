@@ -30,6 +30,7 @@ CREATE TABLE students (
     gender VARCHAR(10) NOT NULL CHECK (gender IN ('M', 'F', 'Others')),
     program_code VARCHAR(10) NOT NULL,
     year_level INTEGER NOT NULL CHECK (year_level BETWEEN 1 AND 5),
+    profile_image_url TEXT,
     FOREIGN KEY (program_code) REFERENCES programs(program_code) ON DELETE RESTRICT
 );
 
@@ -38,6 +39,8 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     profile_image_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -70,14 +73,6 @@ CREATE INDEX idx_programs_college ON programs(college_code);
 CREATE INDEX idx_users_email ON users(email);
 
 -- ==========================================
--- GRANT PERMISSIONS
--- ==========================================
-
--- Grant all privileges on all tables to the user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO username123;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO username123;
-
--- ==========================================
 -- DISPLAY SUCCESS MESSAGE
 -- ==========================================
 
@@ -87,5 +82,4 @@ BEGIN
     RAISE NOTICE 'Tables created: colleges, programs, students, users';
     RAISE NOTICE 'Default N/A records inserted';
     RAISE NOTICE 'Indexes created for optimized queries';
-    RAISE NOTICE 'Permissions granted to username123';
 END $$;

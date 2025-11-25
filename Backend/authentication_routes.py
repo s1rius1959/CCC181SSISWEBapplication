@@ -18,9 +18,14 @@ def init_auth_routes(engine):
         email = data.get("email")
         password = data.get("password")
         confirm_password = data.get("confirm_password")
+        first_name = data.get("first_name", "").strip()
+        last_name = data.get("last_name", "").strip()
 
         if not email or not password or not confirm_password:
             return jsonify({"error": "All fields are required"}), 400
+
+        if not first_name or not last_name:
+            return jsonify({"error": "First name and last name are required"}), 400
 
         if password != confirm_password:
             return jsonify({"error": "Passwords do not match"}), 400
@@ -41,8 +46,8 @@ def init_auth_routes(engine):
                     return jsonify({"error": "Email already registered"}), 400
 
                 conn.execute(
-                    text("INSERT INTO users (email, password_hash) VALUES (:email, :password_hash)"),
-                    {"email": email, "password_hash": password_hash}
+                    text("INSERT INTO users (email, password_hash, first_name, last_name) VALUES (:email, :password_hash, :first_name, :last_name)"),
+                    {"email": email, "password_hash": password_hash, "first_name": first_name, "last_name": last_name}
                 )
                 conn.commit()
 
@@ -127,7 +132,7 @@ def init_auth_routes(engine):
             email = get_jwt_identity()
             with engine.connect() as conn:
                 user = conn.execute(
-                    text("SELECT email, profile_image_url FROM users WHERE email = :email"),
+                    text("SELECT email, profile_image_url, first_name, last_name FROM users WHERE email = :email"),
                     {"email": email}
                 ).fetchone()
 
@@ -136,7 +141,9 @@ def init_auth_routes(engine):
 
                 return jsonify({
                     "email": user[0],
-                    "profile_image_url": user[1]
+                    "profile_image_url": user[1],
+                    "first_name": user[2],
+                    "last_name": user[3]
                 }), 200
         except Exception as e:
             print(f"Get profile error: {e}")

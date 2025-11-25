@@ -72,6 +72,7 @@ def setup_database():
             gender VARCHAR(10) NOT NULL CHECK (gender IN ('M', 'F', 'Others')),
             program_code VARCHAR(10) NOT NULL,
             year_level INTEGER NOT NULL CHECK (year_level BETWEEN 1 AND 5),
+            profile_image_url TEXT,
             FOREIGN KEY (program_code) REFERENCES programs(program_code) ON DELETE CASCADE
         );
 
@@ -79,6 +80,8 @@ def setup_database():
             id SERIAL PRIMARY KEY,
             email VARCHAR(255) UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
+            first_name VARCHAR(100),
+            last_name VARCHAR(100),
             profile_image_url TEXT
         );
         """

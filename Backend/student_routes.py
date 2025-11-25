@@ -74,7 +74,7 @@ def init_student_routes(engine):
             with engine.connect() as connection:
                 result = connection.execute(
                     text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level
+                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
                         FROM students
                         {where_clause}
                         {order_clause}
@@ -89,7 +89,8 @@ def init_student_routes(engine):
                         "lastName": r[2],
                         "gender": r[3],
                         "course": r[4],
-                        "yearLevel": r[5]
+                        "yearLevel": r[5],
+                        "profileImage": r[6]
                     }
                     for r in rows
                 ]
@@ -105,7 +106,7 @@ def init_student_routes(engine):
             with engine.connect() as connection:
                 result = connection.execute(
                     text("""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level
+                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
                         FROM students
                         WHERE student_id = :id
                     """),
@@ -121,7 +122,8 @@ def init_student_routes(engine):
                     "lastName": result[2],
                     "gender": result[3],
                     "course": result[4],
-                    "yearLevel": result[5]
+                    "yearLevel": result[5],
+                    "profileImage": result[6]
                 }), 200
         except Exception as e:
             print(f"Error in get_student: {e}")
@@ -147,6 +149,7 @@ def init_student_routes(engine):
             gender = str(data["gender"]).strip()
             course = str(data["course"]).strip()
             year_level = int(data["yearLevel"])
+            profile_image = data.get("profileImage", None)
 
             with engine.connect() as connection:
                 # Check duplicate ID
@@ -167,8 +170,8 @@ def init_student_routes(engine):
 
                 connection.execute(
                     text("""
-                        INSERT INTO students (student_id, first_name, last_name, gender, program_code, year_level)
-                        VALUES (:id, :first, :last, :gender, :course, :year)
+                        INSERT INTO students (student_id, first_name, last_name, gender, program_code, year_level, profile_image_url)
+                        VALUES (:id, :first, :last, :gender, :course, :year, :profile_image)
                     """),
                     {
                         "id": student_id,
@@ -176,7 +179,8 @@ def init_student_routes(engine):
                         "last": last_name,
                         "gender": gender,
                         "course": course,
-                        "year": year_level
+                        "year": year_level,
+                        "profile_image": profile_image
                     }
                 )
                 connection.commit()
@@ -200,6 +204,7 @@ def init_student_routes(engine):
             gender = str(data.get("gender", "")).strip()
             course = str(data.get("course", "")).strip()
             year_level = str(data.get("yearLevel", "")).strip()
+            profile_image = data.get("profileImage", None)
 
             with engine.connect() as connection:
                 existing = connection.execute(
@@ -217,7 +222,8 @@ def init_student_routes(engine):
                             last_name = :last,
                             gender = :gender,
                             program_code = :course,
-                            year_level = :year
+                            year_level = :year,
+                            profile_image_url = :profile_image
                         WHERE student_id = :old_id
                     """),
                     {
@@ -227,6 +233,7 @@ def init_student_routes(engine):
                         "gender": gender,
                         "course": course,
                         "year": year_level,
+                        "profile_image": profile_image,
                         "old_id": student_id
                     }
                 )

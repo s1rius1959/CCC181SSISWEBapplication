@@ -184,6 +184,7 @@ function Students() {
         <table className="data-table">
           <thead>
             <tr>
+              <th>Profile</th>
               <th onClick={() => handleHeaderClick("id")}>
                 Student ID {sortConfig.key === "id" && (sortConfig.direction === "asc" ? "↑" : "↓")}
               </th>
@@ -208,11 +209,21 @@ function Students() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: "center" }}>Loading...</td>
+                <td colSpan="8" style={{ textAlign: "center" }}>Loading...</td>
               </tr>
             ) : paginated.length > 0 ? (
               paginated.map((s) => (
                 <tr key={s.id}>
+                  <td>
+                    <img 
+                      src={s.profileImage || "/user_icon.png"} 
+                      alt={`${s.firstName} ${s.lastName}`}
+                      className="student-profile-thumbnail"
+                      onError={(e) => {
+                        e.target.src = "/user_icon.png";
+                      }}
+                    />
+                  </td>
                   <td>{s.id}</td>
                   <td>{s.firstName}</td>
                   <td>{s.lastName}</td>
@@ -231,7 +242,7 @@ function Students() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" style={{ textAlign: "center" }}>
+                <td colSpan="8" style={{ textAlign: "center" }}>
                   No students found
                 </td>
               </tr>

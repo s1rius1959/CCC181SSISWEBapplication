@@ -6,6 +6,8 @@ import "./Auth.css";
 
 function Signup() {
   const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     confirm_password: "",
@@ -54,6 +56,24 @@ function Signup() {
 
         <form onSubmit={handleSubmit}>
           
+          <input
+            type="text"
+            name="first_name"
+            placeholder="First Name"
+            value={form.first_name}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="text"
+            name="last_name"
+            placeholder="Last Name"
+            value={form.last_name}
+            onChange={handleChange}
+            required
+          />
+
           <input
             type="email"
             name="email"
