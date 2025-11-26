@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import logoutIcon from "./assests/logout.png";
-import profilePlaceholder from "./assests/Profile.png";
+import logoutIcon from "../../assets/logout.png";
+import profilePlaceholder from "../../assets/Profile.png";
 
 function Sidebar() {
   const [profileImage, setProfileImage] = useState(null);

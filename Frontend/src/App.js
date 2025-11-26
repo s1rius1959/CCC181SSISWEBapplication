@@ -1,14 +1,14 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Students from "./Students";
-import Colleges from "./Colleges";
-import Programs from "./Programs";
-import Profile from "./Profile";
-import Login from "./Login";
-import Signup from "./Signup";
-import ProtectedRoute from "./ProtectedRoutes";
-import "./App.css";
+import Sidebar from "./components/common/Sidebar";
+import Students from "./components/students/Students";
+import Colleges from "./components/colleges/Colleges";
+import Programs from "./components/programs/Programs";
+import Profile from "./components/profile/Profile";
+import Login from "./components/auth/Login";
+import Signup from "./components/auth/Signup";
+import ProtectedRoute from "./components/auth/ProtectedRoutes";
+import "./styles/App.css";
 
 function App() {
   return (

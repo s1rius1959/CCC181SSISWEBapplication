@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import ActionButtons from "./ActionButtons";
+import ActionButtons from "../common/ActionButtons";
 import AddStudent from "./AddStudent";
-import Notification from "./Notifications";
-import SearchFilter from "./SearchFilter";
-import JumpToPage from "./JumptoPage";
+import Notification from "../common/Notifications";
+import SearchFilter from "../common/SearchFilter";
+import JumpToPage from "../common/JumptoPage";
 
 const API_URL = "http://localhost:5000/api";
 

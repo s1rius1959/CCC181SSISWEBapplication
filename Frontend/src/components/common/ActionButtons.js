@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import StudentImageUpload from "./StudentImageUpload";
+import StudentImageUpload from "../students/StudentImageUpload";
 
 export default function ActionButtons({
   item,

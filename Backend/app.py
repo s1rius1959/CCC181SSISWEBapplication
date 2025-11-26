@@ -106,10 +106,10 @@ def index():
 
 
 # Import & Register Blueprints
-from student_routes import init_student_routes
-from college_routes import init_college_routes
-from program_routes import init_program_routes
-from authentication_routes import init_auth_routes
+from routes.student_routes import init_student_routes
+from routes.college_routes import init_college_routes
+from routes.program_routes import init_program_routes
+from routes.authentication_routes import init_auth_routes
 
 student_bp = init_student_routes(engine)
 college_bp = init_college_routes(engine)

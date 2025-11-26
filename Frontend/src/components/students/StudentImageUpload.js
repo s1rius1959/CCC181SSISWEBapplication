@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { supabase } from './supabaseClient';
-import './ProfileUpload.css';
+import { supabase } from '../../config/supabaseClient';
+import '../../styles/ProfileUpload.css';
 
 function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
   const [uploading, setUploading] = useState(false);
