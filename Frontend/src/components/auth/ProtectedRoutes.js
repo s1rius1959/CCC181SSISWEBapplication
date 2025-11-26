@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children }) => {
       setIsValid(false);
       return;
     }
-    axios.get("http://localhost:5000/api/auth/verify", {
+    axios.get("/api/auth/verify", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(() => setIsValid(true))

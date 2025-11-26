@@ -53,7 +53,7 @@ function ProfileUpload({ userEmail, currentImageUrl, onUploadSuccess }) {
       setPreviewUrl(publicUrl);
 
       // Update backend database
-      const response = await fetch('http://localhost:5000/api/auth/profile-image', {
+      const response = await fetch('/api/auth/profile-image', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

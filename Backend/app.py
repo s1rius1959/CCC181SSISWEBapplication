@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
 from sqlalchemy_utils import database_exists, create_database
@@ -19,14 +19,16 @@ DBNAME = os.getenv("dbname")
 
 DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 
+# Path to the React build folder
+FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), '..', 'Frontend', 'build')
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
 
 
 CORS(
     app,
     supports_credentials=True,
-    origins=["http://localhost:3000"],
+    origins=["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:5000"],
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
@@ -97,14 +99,6 @@ def setup_database():
 engine = setup_database()
 
 
-# Test Route
-@app.route("/")
-def index():
-    with engine.connect() as conn:
-        t = conn.execute(text("SELECT NOW()")).scalar()
-        return f"<h3>Connection OK</h3><p>{t}</p>"
-
-
 # Import & Register Blueprints
 from routes.student_routes import init_student_routes
 from routes.college_routes import init_college_routes
@@ -120,6 +114,15 @@ app.register_blueprint(student_bp)
 app.register_blueprint(college_bp)
 app.register_blueprint(program_bp)
 app.register_blueprint(auth_bp)
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 # ------------------------------
 # Run server

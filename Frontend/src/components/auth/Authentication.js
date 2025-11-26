@@ -12,7 +12,7 @@ function AuthSystem() {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = 'http://localhost:5000/api';
+import { API_URL } from "../../config/api";
 
   const validateForm = () => {
     const newErrors = {};

@@ -36,7 +36,7 @@ function Signup() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/signup",
+        "/api/auth/signup",
         form,
         {
           headers: {

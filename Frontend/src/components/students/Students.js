@@ -4,8 +4,7 @@ import AddStudent from "./AddStudent";
 import Notification from "../common/Notifications";
 import SearchFilter from "../common/SearchFilter";
 import JumpToPage from "../common/JumptoPage";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "../../config/api";
 
 function Students() {
   const [students, setStudents] = useState([]);
