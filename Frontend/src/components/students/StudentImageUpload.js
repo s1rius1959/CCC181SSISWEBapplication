@@ -15,13 +15,15 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        alert('Please select an image file (JPG, PNG, GIF, etc.)');
+        setUploading(false);
         return;
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
+        alert('File size must be less than 10MB. Please choose a smaller image.');
+        setUploading(false);
         return;
       }
 
@@ -40,7 +42,7 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
 
       if (uploadError) {
         console.error('Upload error details:', uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}. Please ensure the 'avatars' bucket exists and is public in Supabase Storage.`);
+        throw new Error(`Upload failed: ${uploadError.message}. Please check your Supabase configuration.`);
       }
 
       // Get public URL
@@ -52,10 +54,11 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
 
       setPreviewUrl(publicUrl);
       onUploadSuccess(publicUrl);
+      alert('Student image uploaded successfully!');
 
     } catch (error) {
       console.error('Error uploading:', error);
-      alert('Error uploading image: ' + error.message);
+      alert('Upload failed: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -73,7 +76,7 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
       
       <div className="upload-controls">
         <label htmlFor="student-image-upload" className="upload-btn">
-          {uploading ? 'Uploading...' : 'Choose Image'}
+          {uploading ? <><span className="spinner"></span>Uploading...</> : 'Choose Image'}
         </label>
         <input
           id="student-image-upload"
