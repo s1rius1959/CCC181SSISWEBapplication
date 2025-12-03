@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from "../../config/api";
 
 function AuthSystem() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,7 +13,7 @@ function AuthSystem() {
   const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(false);
 
-import { API_URL } from "../../config/api";
+
 
   const validateForm = () => {
     const newErrors = {};

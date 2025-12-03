@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
 from sqlalchemy_utils import database_exists, create_database
@@ -115,17 +115,24 @@ app.register_blueprint(college_bp)
 app.register_blueprint(program_bp)
 app.register_blueprint(auth_bp)
 
-# Serve React App
+# Serve React App 
+@app.errorhandler(404)
+def not_found(e):
+    # If it's an API route, return JSON error
+    if request.path.startswith('/api/'):
+        return {'error': 'Not found'}, 404
+    # Otherwise serve React app
+    return send_from_directory(app.static_folder, 'index.html')
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_react(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+    # Check if it's a static file that exists
+    if path and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+    # Otherwise serve index.html for React Router
+    return send_from_directory(app.static_folder, 'index.html')
 
-# ------------------------------
-# Run server
-# ------------------------------
+
 if __name__ == "__main__":
     app.run(debug=True)
