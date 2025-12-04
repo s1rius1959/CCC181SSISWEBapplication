@@ -27,12 +27,22 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
         return;
       }
 
-      // Create unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${studentId}_${Date.now()}.${fileExt}`;
+      // Delete old image first if exists
+      if (currentImageUrl) {
+        const oldPath = currentImageUrl.split('/avatars/')[1];
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([oldPath]);
+        }
+      }
+
+      // Create file name using only student ID (no timestamp)
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      const fileName = `${studentId}.${fileExt}`;
       const filePath = `students/${fileName}`;
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage - upsert will replace if exists
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, {
@@ -45,15 +55,18 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
         throw new Error(`Upload failed: ${uploadError.message}. Please check your Supabase configuration.`);
       }
 
-      // Get public URL
+      // Get public URL with cache-busting timestamp
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
       
-      console.log('Student image uploaded! Public URL:', publicUrl);
+      // Add timestamp to prevent browser caching
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      
+      console.log('Student image uploaded! Public URL:', urlWithTimestamp);
 
-      setPreviewUrl(publicUrl);
-      onUploadSuccess(publicUrl);
+      setPreviewUrl(urlWithTimestamp);
+      onUploadSuccess(urlWithTimestamp);
       alert('Student image uploaded successfully!');
 
     } catch (error) {
