@@ -73,10 +73,20 @@ function Students() {
 
   const handleAddStudent = async (student) => {
     try {
+      const payload = {
+        student_id: student.id,
+        first_name: student.firstName,
+        last_name: student.lastName,
+        gender: student.gender,
+        program_code: student.course,
+        year_level: student.yearLevel,
+        profile_image_url: student.profileImage
+      };
+      console.log('Sending student to backend:', payload);
       const res = await fetch(`${API_URL}/students`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(student),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to add student");
@@ -88,12 +98,23 @@ function Students() {
     }
   };
 
-  const handleEdit = async (student) => {
+  const handleEdit = async (student, originalId) => {
     try {
-      const res = await fetch(`${API_URL}/students/${student.id}`, {
+      const payload = {
+        old_id: originalId || student.id,
+        student_id: student.id,
+        first_name: student.firstName,
+        last_name: student.lastName,
+        gender: student.gender,
+        program_code: student.course,
+        year_level: student.yearLevel,
+        profile_image_url: student.profileImage
+      };
+      console.log('Updating student:', payload);
+      const res = await fetch(`${API_URL}/students`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(student),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to edit student");
@@ -106,8 +127,12 @@ function Students() {
 
   const handleDelete = async (student) => {
     try {
-      const res = await fetch(`${API_URL}/students/${student.id}`, {
+      const res = await fetch(`${API_URL}/students`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          student_id: student.id
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to delete student");

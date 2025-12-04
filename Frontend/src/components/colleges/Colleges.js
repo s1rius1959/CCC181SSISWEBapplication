@@ -58,10 +58,15 @@ function Colleges() {
 
   const handleAddCollege = async (newCollege) => {
     try {
+      const payload = {
+        college_code: newCollege.code,
+        college_name: newCollege.name
+      };
+      console.log('Sending to backend:', payload);
       const response = await fetch(`${API_URL}/colleges`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCollege),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -77,10 +82,14 @@ function Colleges() {
 
   const handleEditCollege = async (editedCollege, originalCode) => {
     try {
-      const response = await fetch(`${API_URL}/colleges/${originalCode}`, {
+      const response = await fetch(`${API_URL}/colleges`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editedCollege),
+        body: JSON.stringify({
+          old_code: originalCode,
+          college_code: editedCollege.code,
+          college_name: editedCollege.name
+        }),
       });
 
       const data = await response.json();
@@ -95,8 +104,12 @@ function Colleges() {
 
   const handleDeleteCollege = async (college) => {
     try {
-      const response = await fetch(`${API_URL}/colleges/${college.code}`, {
+      const response = await fetch(`${API_URL}/colleges`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          college_code: college.code
+        }),
       });
 
       const data = await response.json();

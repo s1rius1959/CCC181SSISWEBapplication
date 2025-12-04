@@ -63,7 +63,7 @@ export default function ActionButtons({
       const programData = {
         code: editedItem.code,
         name: editedItem.name,
-        college: editedItem.collegeCode,
+        collegeCode: editedItem.collegeCode,
       };
       onEdit(programData, item.code); 
     } else if (isCollege) {

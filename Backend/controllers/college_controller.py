@@ -25,8 +25,15 @@ class CollegeController:
         """Create a new college"""
         try:
             data = request.get_json()
+            print(f"DEBUG - Received data: {data}")  # Debug logging
+            print(f"DEBUG - Request content type: {request.content_type}")  # Debug logging
+            
+            if data is None:
+                return jsonify({"error": "No JSON data received"}), 400
+            
             college_code = data.get('college_code', '').strip().upper()
             college_name = data.get('college_name', '').strip()
+            print(f"DEBUG - college_code: '{college_code}', college_name: '{college_name}'")  # Debug logging
             
             if not college_code or not college_name:
                 return jsonify({"error": "College code and name are required"}), 400

@@ -71,10 +71,16 @@ function Programs() {
 
   const handleAddProgram = async (newProgram) => {
     try {
+      const payload = {
+        program_code: newProgram.code,
+        program_name: newProgram.name,
+        college_code: newProgram.college || newProgram.collegeCode
+      };
+      console.log('Sending program to backend:', payload);
       const response = await fetch(`${API_URL}/programs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProgram),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to add program");
@@ -89,10 +95,17 @@ function Programs() {
 
   const handleEditProgram = async (editedProgram, originalCode) => {
     try {
-      const response = await fetch(`${API_URL}/programs/${originalCode}`, {
+      const payload = {
+        old_code: originalCode,
+        program_code: editedProgram.code,
+        program_name: editedProgram.name,
+        college_code: editedProgram.college || editedProgram.collegeCode
+      };
+      console.log('Updating program:', payload);
+      const response = await fetch(`${API_URL}/programs`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editedProgram),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to edit program");
@@ -106,8 +119,12 @@ function Programs() {
 
   const handleDeleteProgram = async (program) => {
     try {
-      const response = await fetch(`${API_URL}/programs/${program.code}`, {
+      const response = await fetch(`${API_URL}/programs`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          program_code: program.code
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to delete program");
