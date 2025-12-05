@@ -11,34 +11,85 @@ class StudentModel:
         """Fetch all students with optional search and sort"""
         with self.engine.connect() as conn:
             if search:
+                search_stripped = search.strip()
+                search_upper = search_stripped.upper()
+
                 if search_field == 'id':
+                    # Extract only numbers from search for ID field
+                    search_numbers = ''.join(filter(str.isdigit, search_stripped))
+                    if not search_numbers:
+                        # Return empty if no numbers provided
+                        return []
                     query = text(f"""
                         SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
                         FROM students
-                        WHERE LOWER(student_id) LIKE LOWER(:search)
+                        WHERE student_id LIKE :search
                         ORDER BY {sort_by} {sort.upper()}
                     """)
-                elif search_field == 'name':
+                    result = conn.execute(query, {"search": f"%{search_numbers}%"})
+
+                elif search_field == 'first_name':
                     query = text(f"""
                         SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
                         FROM students
-                        WHERE LOWER(first_name) LIKE LOWER(:search)
-                           OR LOWER(last_name) LIKE LOWER(:search)
+                        WHERE UPPER(first_name) LIKE :search
                         ORDER BY {sort_by} {sort.upper()}
                     """)
+                    result = conn.execute(query, {"search": f"{search_upper}%"})
+
+                elif search_field == 'last_name':
+                    query = text(f"""
+                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
+                        FROM students
+                        WHERE UPPER(last_name) LIKE :search
+                        ORDER BY {sort_by} {sort.upper()}
+                    """)
+                    result = conn.execute(query, {"search": f"{search_upper}%"})
+
+                elif search_field == 'gender':
+                    query = text(f"""
+                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
+                        FROM students
+                        WHERE UPPER(gender) LIKE :search
+                        ORDER BY {sort_by} {sort.upper()}
+                    """)
+                    result = conn.execute(query, {"search": f"{search_upper}%"})
+
+                elif search_field == 'course':
+                    # Program code starts with match (case-insensitive)
+                    query = text(f"""
+                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
+                        FROM students
+                        WHERE UPPER(program_code) LIKE :search
+                        ORDER BY {sort_by} {sort.upper()}
+                    """)
+                    result = conn.execute(query, {"search": f"{search_upper}%"})
+
+                elif search_field == 'year_level':
+                    query = text(f"""
+                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
+                        FROM students
+                        WHERE CAST(year_level AS TEXT) LIKE :search
+                        ORDER BY {sort_by} {sort.upper()}
+                    """)
+                    result = conn.execute(query, {"search": f"{search_stripped}%"})
+
                 else:  # all fields
                     query = text(f"""
                         SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
                         FROM students
-                        WHERE LOWER(student_id) LIKE LOWER(:search)
-                           OR LOWER(first_name) LIKE LOWER(:search)
-                           OR LOWER(last_name) LIKE LOWER(:search)
-                           OR LOWER(gender) LIKE LOWER(:search)
-                           OR LOWER(program_code) LIKE LOWER(:search)
-                           OR CAST(year_level AS TEXT) LIKE :search
+                        WHERE student_id LIKE :search
+                        OR UPPER(first_name) LIKE :search_upper
+                        OR UPPER(last_name) LIKE :search_upper
+                        OR UPPER(gender) LIKE :search_upper
+                        OR UPPER(program_code) LIKE :search_upper
+                        OR CAST(year_level AS TEXT) LIKE :search
                         ORDER BY {sort_by} {sort.upper()}
                     """)
-                result = conn.execute(query, {"search": f"%{search}%"})
+                    result = conn.execute(query, {
+                        "search": f"%{search_stripped}%",
+                        "search_upper": f"{search_upper}%"
+                    })
             else:
                 query = text(f"""
                     SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
@@ -47,6 +98,7 @@ class StudentModel:
                 """)
                 result = conn.execute(query)
             
+            # Fetch all rows while connection is still open
             return [{
                 "id": row[0],
                 "firstName": row[1],
