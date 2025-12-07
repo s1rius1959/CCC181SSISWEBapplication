@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../config/supabaseClient';
 import '../../styles/ProfileUpload.css';
 
-function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
+function StudentImageUpload({ studentId, originalStudentId, currentImageUrl, onUploadSuccess }) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(currentImageUrl || null);
 
@@ -28,12 +28,28 @@ function StudentImageUpload({ studentId, currentImageUrl, onUploadSuccess }) {
       }
 
       // Delete old image first if exists
-      if (currentImageUrl) {
-        const oldPath = currentImageUrl.split('/avatars/')[1];
-        if (oldPath) {
-          await supabase.storage
+      // Check both originalStudentId (if ID changed) and current studentId
+      const idsToCheck = originalStudentId && originalStudentId !== studentId 
+        ? [originalStudentId, studentId] 
+        : [studentId];
+      
+      for (const idToCheck of idsToCheck) {
+        try {
+          const { data: files } = await supabase.storage
             .from('avatars')
-            .remove([oldPath]);
+            .list('students');
+          
+          if (files) {
+            const oldFile = files.find(file => file.name.startsWith(`${idToCheck}.`));
+            if (oldFile) {
+              await supabase.storage
+                .from('avatars')
+                .remove([`students/${oldFile.name}`]);
+              console.log(`Deleted old image: students/${oldFile.name}`);
+            }
+          }
+        } catch (err) {
+          console.warn(`Could not delete old image for ID ${idToCheck}:`, err);
         }
       }
 

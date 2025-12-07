@@ -135,3 +135,41 @@
   background: #ccc;
   cursor: not-allowed;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-image-container {
+    width: 120px;
+    height: 120px;
+  }
+  .profile-image {
+    width: 120px;
+    height: 120px;
+  }
+  .profile-placeholder {
+    font-size: 48px;
+  }
+  .profile-preview {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-image-container {
+    width: 96px;
+    height: 96px;
+  }
+  .profile-image {
+    width: 96px;
+    height: 96px;
+  }
+  .profile-preview {
+    width: 48px;
+    height: 48px;
+  }
+  .upload-btn, .remove-profile-btn {
+    width: 100%;
+    padding: 10px;
+  }
+}

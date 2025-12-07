@@ -390,7 +390,7 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 0;
-  overflow: hidden;
+  overflow: auto; /* allow horizontal scroll on small screens */
   border: 1px solid #e2e8f0;
 }
 
@@ -720,6 +720,117 @@ body {
   max-width: 90%;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Responsive rules */
+@media (max-width: 1200px) {
+  .content {
+    padding: 24px 28px;
+  }
+  .sidebar {
+    width: 200px;
+  }
+  .search-input {
+    width: 220px;
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    width: 80px;
+  }
+  .sidebar-logo {
+    font-size: 20px;
+    padding: 20px 10px;
+  }
+  .sidebar-menu a {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  .content {
+    padding: 20px 20px;
+  }
+  .search-input {
+    width: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .sidebar {
+    display: none; /* hide sidebar on small screens to save space */
+  }
+  .main-content {
+    min-height: 100vh;
+  }
+  .content {
+    padding: 16px;
+    max-width: 100%;
+  }
+  .content-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .search-area {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    width: 100%;
+  }
+  .filter-select {
+    width: 100%;
+  }
+  .add-student-btn, .add-college-btn, .add-program-btn {
+    width: 100%;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
+  .data-table {
+    display: block;
+    min-width: 700px; /* allow horizontal scroll */
+  }
+  .data-table thead,
+  .data-table tbody,
+  .data-table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+  .data-table th, .data-table td {
+    text-align: left;
+    padding: 12px 10px;
+  }
+  .data-table td:last-child, .data-table th:last-child {
+    width: auto;
+  }
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 12px;
+  }
+  .popup {
+    width: 95%;
+    padding: 20px;
+  }
+  .profile-container {
+    padding: 20px;
+  }
+  .student-profile-thumbnail {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 .popup h3,

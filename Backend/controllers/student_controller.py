@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from models.student_model import StudentModel
+from utils.supabase_client import rename_student_image, delete_student_image
 
 
 class StudentController:
@@ -76,6 +77,12 @@ class StudentController:
             if old_id != student_id and self.model.exists(student_id):
                 return jsonify({"error": "New student ID already exists"}), 409
             
+            # If student ID changed and there's an image, rename it in Supabase
+            if old_id != student_id and profile_image_url:
+                new_image_url = rename_student_image(old_id, student_id)
+                if new_image_url:
+                    profile_image_url = new_image_url
+            
             self.model.update(old_id, student_id, first_name, last_name, gender, program_code, year_level, profile_image_url)
             return jsonify({"message": "Student updated successfully"}), 200
         except Exception as e:
@@ -92,6 +99,9 @@ class StudentController:
             
             if not self.model.exists(student_id):
                 return jsonify({"error": "Student not found"}), 404
+            
+            # Delete the student's image from Supabase if it exists
+            delete_student_image(student_id)
             
             self.model.delete(student_id)
             return jsonify({"message": "Student deleted successfully"}), 200

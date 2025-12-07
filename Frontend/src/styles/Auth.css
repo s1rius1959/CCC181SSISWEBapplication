@@ -121,3 +121,31 @@
   
   
   
+
+/* Responsive auth styles */
+@media (max-width: 768px) {
+  .auth-card {
+    width: 92%;
+    padding: 18px;
+    margin: 0 auto;
+  }
+  .auth-card input,
+  .auth-card button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .auth-card h2 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 14px;
+  }
+  .auth-card h2 {
+    font-size: 18px;
+  }
+}
+
+

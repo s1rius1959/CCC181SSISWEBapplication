@@ -115,6 +115,7 @@ export default function ActionButtons({
                     <label className="form-label">Profile Picture</label>
                     <StudentImageUpload 
                       studentId={editedItem.id}
+                      originalStudentId={item.id}
                       currentImageUrl={editedItem.profileImage}
                       onUploadSuccess={(url) => setEditedItem(prev => ({ ...prev, profileImage: url }))}
                     />
