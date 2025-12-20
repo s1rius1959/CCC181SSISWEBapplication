@@ -143,14 +143,6 @@ function Programs() {
     fetchPrograms(direction, columnKey);
   };
 
-  const handleResetSort = () => {
-    const defaultSort = { key: "program_code", direction: "asc" };
-    setSortConfig(defaultSort);
-    setSearchQuery("");
-    setSearchField("all");
-    fetchPrograms(defaultSort.direction, defaultSort.key);
-  };
-
   const handleSearch = () => fetchPrograms(sortConfig.direction, sortConfig.key);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -176,7 +168,6 @@ function Programs() {
             filterOptions={filterOptions}
           />
           <button className="btn search-btn" onClick={handleSearch}>Search</button>
-          <button className="btn btn-sort-reset" onClick={handleResetSort}>⟲ Reset</button>
         </div>
         <button className="btn btn-success add-student-btn" onClick={() => setShowAddPopup(true)}>
           + Add Program

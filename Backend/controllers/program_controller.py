@@ -16,7 +16,11 @@ class ProgramController:
             search = request.args.get('search', '').strip()
             search_field = request.args.get('search_field', 'all')
             
-            programs = self.model.get_all(sort, sort_by, search, search_field)
+            # Get college filter as comma-separated values
+            colleges_param = request.args.get('colleges', '')
+            colleges = [c.strip() for c in colleges_param.split(',') if c.strip()] if colleges_param else None
+            
+            programs = self.model.get_all(sort, sort_by, search, search_field, colleges)
             return jsonify(programs), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500

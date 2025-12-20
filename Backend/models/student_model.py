@@ -7,96 +7,80 @@ class StudentModel:
     def __init__(self, engine):
         self.engine = engine
 
-    def get_all(self, sort='asc', sort_by='student_id', search=None, search_field='all'):
-        """Fetch all students with optional search and sort"""
+    def get_all(self, sort='asc', sort_by='student_id', search=None, search_field='all', genders=None, year_levels=None, programs=None):
+        """Fetch all students with optional search, sort, and filters"""
         with self.engine.connect() as conn:
+            # Build WHERE clauses
+            where_clauses = []
+            params = {}
+            
+            # Add search filter
             if search:
                 search_stripped = search.strip()
                 search_upper = search_stripped.upper()
-
+                
                 if search_field == 'id':
-                    # Extract only numbers from search for ID field
                     search_numbers = ''.join(filter(str.isdigit, search_stripped))
                     if not search_numbers:
-                        # Return empty if no numbers provided
                         return []
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE student_id LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {"search": f"%{search_numbers}%"})
-
+                    where_clauses.append("student_id LIKE :search")
+                    params["search"] = f"%{search_numbers}%"
                 elif search_field == 'first_name':
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE UPPER(first_name) LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {"search": f"{search_upper}%"})
-
+                    where_clauses.append("UPPER(first_name) LIKE :search")
+                    params["search"] = f"{search_upper}%"
                 elif search_field == 'last_name':
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE UPPER(last_name) LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {"search": f"{search_upper}%"})
-
+                    where_clauses.append("UPPER(last_name) LIKE :search")
+                    params["search"] = f"{search_upper}%"
                 elif search_field == 'gender':
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE UPPER(gender) LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {"search": f"{search_upper}%"})
-
+                    where_clauses.append("UPPER(gender) LIKE :search")
+                    params["search"] = f"{search_upper}%"
                 elif search_field == 'course':
-                    # Program code starts with match (case-insensitive)
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE UPPER(program_code) LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {"search": f"{search_upper}%"})
-
+                    where_clauses.append("UPPER(program_code) LIKE :search")
+                    params["search"] = f"{search_upper}%"
                 elif search_field == 'year_level':
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE CAST(year_level AS TEXT) LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {"search": f"{search_stripped}%"})
-
+                    where_clauses.append("CAST(year_level AS TEXT) LIKE :search")
+                    params["search"] = f"{search_stripped}%"
                 else:  # all fields
-                    query = text(f"""
-                        SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                        FROM students
-                        WHERE student_id LIKE :search
+                    where_clauses.append("""(student_id LIKE :search
                         OR UPPER(first_name) LIKE :search_upper
                         OR UPPER(last_name) LIKE :search_upper
                         OR UPPER(gender) LIKE :search_upper
                         OR UPPER(program_code) LIKE :search_upper
-                        OR CAST(year_level AS TEXT) LIKE :search
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                    result = conn.execute(query, {
-                        "search": f"%{search_stripped}%",
-                        "search_upper": f"{search_upper}%"
-                    })
-            else:
-                query = text(f"""
-                    SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
-                    FROM students
-                    ORDER BY {sort_by} {sort.upper()}
-                """)
-                result = conn.execute(query)
+                        OR CAST(year_level AS TEXT) LIKE :search)""")
+                    params["search"] = f"%{search_stripped}%"
+                    params["search_upper"] = f"{search_upper}%"
+            
+            # Add gender filter
+            if genders and len(genders) > 0:
+                placeholders = ', '.join([f':gender_{i}' for i in range(len(genders))])
+                where_clauses.append(f"gender IN ({placeholders})")
+                for i, gender in enumerate(genders):
+                    params[f'gender_{i}'] = gender
+            
+            # Add year level filter
+            if year_levels and len(year_levels) > 0:
+                placeholders = ', '.join([f':year_{i}' for i in range(len(year_levels))])
+                where_clauses.append(f"year_level IN ({placeholders})")
+                for i, year in enumerate(year_levels):
+                    params[f'year_{i}'] = int(year)
+            
+            # Add program filter
+            if programs and len(programs) > 0:
+                placeholders = ', '.join([f':program_{i}' for i in range(len(programs))])
+                where_clauses.append(f"program_code IN ({placeholders})")
+                for i, program in enumerate(programs):
+                    params[f'program_{i}'] = program
+            
+            # Query
+            where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+            query = text(f"""
+                SELECT student_id, first_name, last_name, gender, program_code, year_level, profile_image_url
+                FROM students
+                WHERE {where_sql}
+                ORDER BY {sort_by} {sort.upper()}
+            """)
+            
+            result = conn.execute(query, params)
             
             # Fetch all rows while connection is still open
             return [{

@@ -4,6 +4,7 @@ import AddStudent from "./AddStudent";
 import Notification from "../common/Notifications";
 import SearchFilter from "../common/SearchFilter";
 import JumpToPage from "../common/JumptoPage";
+import MultiFilterDropdown from "../common/MultiFilterDropdown";
 import { API_URL } from "../../config/api";
 
 function Students() {
@@ -15,6 +16,9 @@ function Students() {
   const [notification, setNotification] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState("all");
+  const [selectedGenders, setSelectedGenders] = useState([]);
+  const [selectedYearLevels, setSelectedYearLevels] = useState([]);
+  const [selectedPrograms, setSelectedPrograms] = useState([]);
 
   const [sortConfig, setSortConfig] = useState({
     key: "id",
@@ -43,12 +47,26 @@ function Students() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    fetchStudents(sortConfig.direction, sortConfig.key);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGenders, selectedYearLevels, selectedPrograms]);
+
   const fetchStudents = async (sort = "asc", sortBy = "id") => {
     try {
       setLoading(true);
       let url = `${API_URL}/students?sort=${sort}&sort_by=${sortBy}`;
       if (searchQuery.trim()) {
         url += `&search=${encodeURIComponent(searchQuery.trim())}&search_field=${searchField}`;
+      }
+      if (selectedGenders.length > 0) {
+        url += `&genders=${selectedGenders.join(',')}`;
+      }
+      if (selectedYearLevels.length > 0) {
+        url += `&year_levels=${selectedYearLevels.join(',')}`;
+      }
+      if (selectedPrograms.length > 0) {
+        url += `&programs=${selectedPrograms.join(',')}`;
       }
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch students");
@@ -152,14 +170,6 @@ function Students() {
 
   const handleSearch = () => fetchStudents(sortConfig.direction, sortConfig.key);
 
-  const handleReset = () => {
-    setSearchQuery("");
-    setSearchField("all");
-    const defaultSort = { key: "id", direction: "asc" };
-    setSortConfig(defaultSort);
-    fetchStudents(defaultSort.direction, defaultSort.key);
-  };
-
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginated = students.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(students.length / itemsPerPage);
@@ -190,9 +200,43 @@ function Students() {
           <button className="btn search-btn" onClick={handleSearch}>
             Search
           </button>
-          <button className="btn btn-sort-reset" onClick={handleReset}>
-            ⟲ Reset
-          </button>
+          <MultiFilterDropdown
+            filterGroups={[
+              {
+                key: "genders",
+                title: "Gender",
+                options: [
+                  { value: "M", label: "Male" },
+                  { value: "F", label: "Female" },
+                  { value: "Others", label: "Others" },
+                ],
+                selectedValues: selectedGenders,
+              },
+              {
+                key: "programs",
+                title: "Program",
+                options: programs.map((p) => ({ value: p.code, label: `${p.code}` })),
+                selectedValues: selectedPrograms,
+              },
+              {
+                key: "yearLevels",
+                title: "Year Level",
+                options: [
+                  { value: "1", label: "1st Year" },
+                  { value: "2", label: "2nd Year" },
+                  { value: "3", label: "3rd Year" },
+                  { value: "4", label: "4th Year" },
+                  { value: "5", label: "5th Year" },
+                ],
+                selectedValues: selectedYearLevels,
+              },
+            ]}
+            onFiltersChange={(groupKey, values) => {
+              if (groupKey === "genders") setSelectedGenders(values);
+              else if (groupKey === "programs") setSelectedPrograms(values);
+              else if (groupKey === "yearLevels") setSelectedYearLevels(values);
+            }}
+          />
         </div>
 
         <button

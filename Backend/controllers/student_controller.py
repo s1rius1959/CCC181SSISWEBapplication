@@ -24,7 +24,17 @@ class StudentController:
             }
             sort_by = column_mapping.get(sort_by, sort_by)
             
-            students = self.model.get_all(sort, sort_by, search, search_field)
+            # Get filter parameters as comma-separated values
+            genders_param = request.args.get('genders', '')
+            genders = [g.strip() for g in genders_param.split(',') if g.strip()] if genders_param else None
+            
+            year_levels_param = request.args.get('year_levels', '')
+            year_levels = [y.strip() for y in year_levels_param.split(',') if y.strip()] if year_levels_param else None
+            
+            programs_param = request.args.get('programs', '')
+            programs = [p.strip() for p in programs_param.split(',') if p.strip()] if programs_param else None
+            
+            students = self.model.get_all(sort, sort_by, search, search_field, genders, year_levels, programs)
             return jsonify(students), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500

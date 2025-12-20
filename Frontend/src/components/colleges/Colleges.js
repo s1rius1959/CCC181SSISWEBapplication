@@ -129,14 +129,6 @@ function Colleges() {
     fetchColleges(direction, columnKey);
   };
 
-  const handleResetSort = () => {
-    const defaultSort = { key: "college_code", direction: "asc" };
-    setSortConfig(defaultSort);
-    setSearchQuery("");
-    setSearchField("all");
-    fetchColleges(defaultSort.direction, defaultSort.key);
-  };
-
   const handleSearch = () => fetchColleges(sortConfig.direction, sortConfig.key);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -162,7 +154,6 @@ function Colleges() {
             filterOptions={filterOptions}
           />
           <button className="btn search-btn" onClick={handleSearch}>Search</button>
-          <button className="btn btn-sort-reset" onClick={handleResetSort}>⟲ Reset</button>
         </div>
         <button className="btn btn-success add-student-btn" onClick={() => setShowAddPopup(true)}>
           + Add College

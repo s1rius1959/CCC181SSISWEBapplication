@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import logoutIcon from "../../assets/logout.png";
 import profilePlaceholder from "../../assets/Profile.png";
 
 function Sidebar() {
   const [profileImage, setProfileImage] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     fetchProfileImage();
@@ -28,6 +29,13 @@ function Sidebar() {
     }
   };
 
+  const handleReset = () => {
+    // Trigger a page reload to reset the current page
+    window.location.reload();
+  };
+
+  const showResetButton = ['/students', '/colleges', '/programs'].includes(location.pathname);
+
   return (
     <div className="sidebar">
       <div className="sidebar-logo">Class.io</div>
@@ -48,6 +56,13 @@ function Sidebar() {
             Programs
           </NavLink>
         </li>
+        {showResetButton && (
+          <li>
+            <button className="sidebar-reset-btn" onClick={handleReset}>
+              Reset
+            </button>
+          </li>
+        )}
       </ul>
 
       {/* Profile Icon at Bottom */}

@@ -20,7 +20,7 @@ DBNAME = os.getenv("dbname")
 DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
 
 # Path to the React build folder
-FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), '..', 'Frontend', 'build')
+FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), 'static')
 
 app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
 

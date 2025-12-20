@@ -7,41 +7,42 @@ class ProgramModel:
     def __init__(self, engine):
         self.engine = engine
 
-    def get_all(self, sort='asc', sort_by='program_code', search=None, search_field='all'):
-        """Fetch all programs with optional search and sort"""
+    def get_all(self, sort='asc', sort_by='program_code', search=None, search_field='all', colleges=None):
+        """Fetch all programs with optional search, sort, and filters"""
         with self.engine.connect() as conn:
+            # Build WHERE clauses
+            where_clauses = []
+            params = {}
+            
+            # Add search filter
             if search:
                 if search_field == 'code':
-                    query = text(f"""
-                        SELECT program_code, program_name, college_code
-                        FROM programs
-                        WHERE LOWER(program_code) LIKE LOWER(:search)
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
+                    where_clauses.append("LOWER(program_code) LIKE LOWER(:search)")
                 elif search_field == 'name':
-                    query = text(f"""
-                        SELECT program_code, program_name, college_code
-                        FROM programs
-                        WHERE LOWER(program_name) LIKE LOWER(:search)
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
+                    where_clauses.append("LOWER(program_name) LIKE LOWER(:search)")
+                elif search_field == 'collegeCode':
+                    where_clauses.append("LOWER(college_code) LIKE LOWER(:search)")
                 else:  # all fields
-                    query = text(f"""
-                        SELECT program_code, program_name, college_code
-                        FROM programs
-                        WHERE LOWER(program_code) LIKE LOWER(:search)
-                           OR LOWER(program_name) LIKE LOWER(:search)
-                        ORDER BY {sort_by} {sort.upper()}
-                    """)
-                result = conn.execute(query, {"search": f"%{search}%"})
-            else:
-                query = text(f"""
-                    SELECT program_code, program_name, college_code
-                    FROM programs
-                    ORDER BY {sort_by} {sort.upper()}
-                """)
-                result = conn.execute(query)
+                    where_clauses.append("(LOWER(program_code) LIKE LOWER(:search) OR LOWER(program_name) LIKE LOWER(:search))")
+                params["search"] = f"%{search}%"
             
+            # Add college filter
+            if colleges and len(colleges) > 0:
+                placeholders = ', '.join([f':college_{i}' for i in range(len(colleges))])
+                where_clauses.append(f"college_code IN ({placeholders})")
+                for i, college in enumerate(colleges):
+                    params[f'college_{i}'] = college
+            
+            # Query 
+            where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+            query = text(f"""
+                SELECT program_code, program_name, college_code
+                FROM programs
+                WHERE {where_sql}
+                ORDER BY {sort_by} {sort.upper()}
+            """)
+            
+            result = conn.execute(query, params)
             return [{"code": row[0], "name": row[1], "collegeCode": row[2]} for row in result]
 
     def get_by_code(self, program_code):
